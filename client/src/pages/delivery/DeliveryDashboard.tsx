@@ -16,15 +16,43 @@ const DeliveryDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Connect socket and listen for live orders
+    import('../../services/socket').then(({ socket }) => {
+      socket.connect();
+      socket.emit('join_room', 'delivery_partners');
+
+      socket.on('new_delivery_available', (newOrder: any) => {
+        setAvailableOrders(prev => [newOrder, ...prev]);
+
+        // Professional Sound Notification
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        audio.play().catch(e => console.log('Audio play failed:', e));
+
+        if (Notification.permission === 'granted') {
+          new Notification('New Order!', {
+            body: `Pickup from ${newOrder.restaurant?.name}`,
+            icon: newOrder.restaurant?.assets?.logo
+          });
+        }
+      });
+
+      return () => {
+        socket.off('new_delivery_available');
+        socket.disconnect();
+      };
+    });
+
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
   }, []);
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch available orders for delivery
       const ordersRes = await api.get('/orders/delivery/available');
       setAvailableOrders(ordersRes.data.data || []);
 
-      // Check for current active delivery
       const currentRes = await api.get('/orders/delivery/active');
       if (currentRes.data.data) {
         setActiveOrder(currentRes.data.data);
@@ -37,10 +65,10 @@ const DeliveryDashboard = () => {
 
   const handleAcceptOrder = async (orderId: string) => {
     try {
-      await api.post(`/orders/${orderId}/accept`);
+      await api.patch(`/orders/${orderId}/accept`); // Changed to PATCH as per real-world standard
       fetchDashboardData();
     } catch (err) {
-      alert('Could not accept order');
+      alert('Could not accept order. It might have been taken by another partner.');
     }
   };
 
@@ -132,7 +160,7 @@ const DeliveryDashboard = () => {
                         </div>
                       </div>
                       <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-full">
-                        ₹{Math.round(order.billing?.deliveryFee * 0.8)} Earning
+                        ₹{Math.round(order.billing?.deliveryFee * 0.8 || 0)} Earning
                       </span>
                     </div>
 
@@ -146,7 +174,7 @@ const DeliveryDashboard = () => {
                         <div className="space-y-4 flex-1">
                           <div>
                             <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Pickup</p>
-                            <p className="text-dark-900 font-medium text-sm leading-tight">{order.restaurant?.address?.street || 'Restaurant Location'}</p>
+                            <p className="text-dark-900 font-medium text-sm leading-tight">{order.restaurant?.location?.address || 'Restaurant Location'}</p>
                           </div>
                           <div>
                             <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Dropoff</p>
@@ -195,21 +223,41 @@ const DeliveryDashboard = () => {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        {['PICKED_UP', 'DELIVERED'].map((status) => (
-                          <button
-                            key={status}
-                            onClick={() => handleUpdateStatus(status)}
-                            disabled={activeOrder.status === 'DELIVERED'}
-                            className={`py-4 rounded-xl font-bold uppercase tracking-widest text-xs border transition-all ${activeOrder.status === status ? 'bg-green-600 text-white border-green-600' :
-                                activeOrder.status === 'DELIVERED' ? 'bg-gray-100 text-gray-400 border-transparent cursor-not-allowed' :
-                                  'border-gray-200 text-gray-500 hover:border-primary hover:text-primary'
-                              }`}
-                          >
-                            Mark {status.replace('_', ' ')}
-                          </button>
-                        ))}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button
+                          onClick={() => handleUpdateStatus('OUT_FOR_DELIVERY')}
+                          disabled={activeOrder.status === 'OUT_FOR_DELIVERY' || activeOrder.status === 'DELIVERED' || activeOrder.status !== 'READY_FOR_PICKUP'}
+                          className={`py-4 rounded-xl font-bold uppercase tracking-widest text-xs border-2 transition-all ${activeOrder.status === 'OUT_FOR_DELIVERY'
+                              ? 'bg-orange-600 text-white border-orange-600 shadow-lg shadow-orange-200'
+                              : activeOrder.status === 'DELIVERED'
+                                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                : activeOrder.status === 'READY_FOR_PICKUP'
+                                  ? 'bg-white border-primary text-primary hover:bg-primary/5 hover:scale-[1.02]'
+                                  : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                            }`}
+                        >
+                          {activeOrder.status === 'OUT_FOR_DELIVERY' ? '✓ Picked Up' : 'Pick Up / Out for Delivery'}
+                        </button>
+                        <button
+                          onClick={() => handleUpdateStatus('DELIVERED')}
+                          disabled={activeOrder.status !== 'OUT_FOR_DELIVERY' || activeOrder.status === 'DELIVERED'}
+                          className={`py-4 rounded-xl font-bold uppercase tracking-widest text-xs border-2 transition-all ${activeOrder.status === 'DELIVERED'
+                              ? 'bg-green-600 text-white border-green-600 shadow-lg shadow-green-200'
+                              : activeOrder.status === 'OUT_FOR_DELIVERY'
+                                ? 'bg-white border-green-600 text-green-600 hover:bg-green-50 hover:scale-[1.02]'
+                                : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                            }`}
+                        >
+                          {activeOrder.status === 'DELIVERED' ? '✓ Delivered' : 'Mark as Delivered'}
+                        </button>
                       </div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">
+                        {activeOrder.status === 'READY_FOR_PICKUP'
+                          ? '🔥 Handshake: Restaurant has confirmed food is on the counter. Pick it up now!'
+                          : activeOrder.status === 'OUT_FOR_DELIVERY'
+                            ? 'Final Step: Mark as delivered once you reach the customer.'
+                            : 'Waiting for restaurant to confirm food is ready...'}
+                      </p>
                     </div>
 
                     <div className="flex-1 bg-dark-900 rounded-[30px] p-8 text-white relative overflow-hidden">

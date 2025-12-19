@@ -5,11 +5,11 @@ import {
   ChefHat,
   Truck,
   AlertCircle,
-  MoreVertical,
   ArrowRight,
   Loader2,
   Phone,
-  MapPin
+  MapPin,
+  Package
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -46,8 +46,43 @@ const LiveOrders = () => {
   useEffect(() => {
     if (restaurantId) {
       fetchOrders();
-      const interval = setInterval(fetchOrders, 10000);
-      return () => clearInterval(interval);
+
+      // Real-time socket listener for new orders
+      import('../../services/socket').then(({ socket }) => {
+        socket.connect();
+        socket.emit('join_room', restaurantId);
+
+        socket.on('new_order', (newOrder: any) => {
+          setOrders(prev => [newOrder, ...prev]);
+
+          // Play sound for new order
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+          audio.play().catch(e => console.log('Order sound blocked:', e));
+
+          if (Notification.permission === 'granted') {
+            new Notification('New Incoming Order!', { body: `New order from ${newOrder.user?.profile?.name || 'Customer'}` });
+          }
+        });
+
+        socket.on('order_status_updated', (data: { orderId: string, status: string }) => {
+          setOrders(prev => prev.map(o => o._id === data.orderId ? { ...o, status: data.status } : o));
+        });
+
+        socket.on('partner_assigned', (data: { orderId: string, deliveryPartner: any }) => {
+          setOrders(prev => prev.map(o => o._id === data.orderId ? { ...o, deliveryPartner: data.deliveryPartner } : o));
+        });
+
+        return () => {
+          socket.off('new_order');
+          socket.off('order_status_updated');
+          socket.off('partner_assigned');
+          socket.disconnect();
+        };
+      });
+    }
+
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
     }
   }, [restaurantId]);
 
@@ -64,23 +99,32 @@ const LiveOrders = () => {
     }
   };
 
-  const getStatusConfig = (status: string) => {
+  const getStatusConfig = (status: string, deliveryPartner?: any) => {
     switch (status) {
-      case 'PLACED': return { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', label: 'Incoming Order' };
+      case 'PLACED': return { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', label: 'New Order' };
       case 'CONFIRMED': return { icon: CheckCircle, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', label: 'Accepted' };
-      case 'PREPARING': return { icon: ChefHat, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100', label: 'Preparing' };
-      case 'OUT_FOR_DELIVERY': return { icon: Truck, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', label: 'On its way' };
-      case 'DELIVERED': return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', label: 'Delivered' };
+      case 'PREPARING': return { icon: ChefHat, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100', label: 'Cooking' };
+      case 'READY_FOR_PICKUP':
+        return deliveryPartner
+          ? { icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', label: 'Driver Arriving' }
+          : { icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', label: 'Ready for Pickup' };
+      case 'OUT_FOR_DELIVERY': return { icon: Truck, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', label: 'Out for Delivery' };
+      case 'DELIVERED': return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', label: 'Delivered Success ✅' };
       case 'CANCELLED': return { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', label: 'Cancelled' };
       default: return { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-50', border: 'border-gray-100', label: status };
     }
   };
 
+  const actionButtonLabel: Record<string, string> = {
+    'CONFIRMED': 'Accept Order',
+    'PREPARING': 'Start Cooking',
+    'READY_FOR_PICKUP': 'Mark as Ready'
+  };
+
   const nextStatusMap: Record<string, string> = {
     'PLACED': 'CONFIRMED',
     'CONFIRMED': 'PREPARING',
-    'PREPARING': 'OUT_FOR_DELIVERY',
-    'OUT_FOR_DELIVERY': 'DELIVERED'
+    'PREPARING': 'READY_FOR_PICKUP'
   };
 
   if (loading && orders.length === 0) {
@@ -115,7 +159,7 @@ const LiveOrders = () => {
       ) : (
         <div className="grid grid-cols-1 gap-6">
           {orders.map((order) => {
-            const config = getStatusConfig(order.status);
+            const config = getStatusConfig(order.status, order.deliveryPartner);
             const nextStatus = nextStatusMap[order.status];
 
             return (
@@ -170,9 +214,21 @@ const LiveOrders = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                          <Phone size={12} /> Special Request
+                          <Truck size={12} /> Delivery Partner
                         </label>
-                        <p className="text-xs font-italic text-gray-500 bg-gray-50 p-3 rounded-xl border border-gray-100">"Please ensure the packaging is airtight."</p>
+                        {order.deliveryPartner ? (
+                          <div className="flex items-center gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100 transition-all animate-in zoom-in-95">
+                            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shrink-0 shadow-md">
+                              <Truck size={14} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-blue-900">{order.deliveryPartner?.profile?.name || 'Assigned'}</p>
+                              <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">On the way to pickup</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-xs font-bold text-gray-400 bg-gray-50 p-3 rounded-xl border border-gray-100 border-dashed italic">Waiting for partner choice...</p>
+                        )}
                       </div>
                     </div>
 
@@ -185,7 +241,7 @@ const LiveOrders = () => {
                         >
                           {updatingId === order._id ? <Loader2 className="animate-spin" size={18} /> : (
                             <>
-                              Mark as {getStatusConfig(nextStatus).label}
+                              {actionButtonLabel[nextStatus] || `Mark as ${nextStatus}`}
                               <ArrowRight size={18} />
                             </>
                           )}

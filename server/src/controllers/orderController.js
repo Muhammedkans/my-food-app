@@ -54,9 +54,18 @@ const createOrder = async (req, res, next) => {
     const pointsAwarded = Math.floor(finalBilling.grandTotal / 10);
     await req.user.updateOne({ $inc: { 'wallet.loyaltyPoints': pointsAwarded } });
 
-    // In a real app: Emit Socket event to Restaurant Owner
-    // const io = require('../socket').getIO();
-    // io.to(restaurantId).emit('new_order', order);
+    // Live update for Restaurant Owner ONLY (Handshake Step 1)
+    try {
+      const io = require('../socket').getIO();
+      const populatedOrder = await Order.findById(order._id)
+        .populate('restaurant', 'name location assets info')
+        .populate('user', 'profile.name');
+
+      // Notify the specific restaurant
+      io.to(restaurantId.toString()).emit('new_order', populatedOrder);
+    } catch (err) {
+      console.error("Socket emit failed during order creation", err);
+    }
 
     res.status(201).json({
       success: true,
@@ -114,6 +123,7 @@ const getRestaurantOrders = async (req, res, next) => {
     // Basic authorization check could be added here or via middleware
     const orders = await Order.find({ restaurant: req.params.restaurantId })
       .populate('user', 'profile.name')
+      .populate('deliveryPartner', 'profile.name')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -139,7 +149,7 @@ const updateOrderStatus = async (req, res, next) => {
     }
 
     // Status validation
-    const validStatuses = ['PLACED', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
+    const validStatuses = ['PLACED', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
     if (!validStatuses.includes(status)) {
       res.status(400);
       throw new Error('Invalid status');
@@ -151,7 +161,25 @@ const updateOrderStatus = async (req, res, next) => {
     // Real-time update via Socket.IO
     try {
       const io = require('../socket').getIO();
+
+      // 1. Notify the customer about the status update
       io.to(order.user.toString()).emit('order_status_updated', {
+        orderId: order._id,
+        status: updatedOrder.status
+      });
+
+      // 2. Elite Handshake: Only notify delivery partners when food is READY_FOR_PICKUP
+      if (status === 'READY_FOR_PICKUP') {
+        const freshOrder = await Order.findById(order._id)
+          .populate('restaurant', 'name info.location assets location address')
+          .populate('user', 'profile.name');
+
+        io.to('delivery_partners').emit('new_delivery_available', freshOrder);
+      }
+
+      // 3. Notify the restaurant owner as well (ensure ID is a string)
+      const restaurantRoom = order.restaurant._id ? order.restaurant._id.toString() : order.restaurant.toString();
+      io.to(restaurantRoom).emit('order_status_updated', {
         orderId: order._id,
         status: updatedOrder.status
       });
@@ -173,12 +201,14 @@ const updateOrderStatus = async (req, res, next) => {
 // @access  Private (Delivery Partner)
 const getAvailableDeliveryOrders = async (req, res, next) => {
   try {
-    // Orders that are ready (CONFIRMED or PREPARING) but not yet out for delivery, 
-    // and have no partner assigned.
+    // Orders that are specifically READY_FOR_PICKUP (Elite Handshake)
     const orders = await Order.find({
-      status: { $in: ['CONFIRMED', 'PREPARING'] },
-      deliveryPartner: { $exists: false }
-    }).populate('restaurant', 'name location assets').populate('user', 'profile.name').sort({ createdAt: 1 });
+      status: 'READY_FOR_PICKUP',
+      $or: [
+        { deliveryPartner: { $exists: false } },
+        { deliveryPartner: null }
+      ]
+    }).populate('restaurant', 'name location assets info').populate('user', 'profile.name').sort({ createdAt: 1 });
 
     res.json({
       success: true,
@@ -200,28 +230,38 @@ const acceptDeliveryOrder = async (req, res, next) => {
       throw new Error('Order not found');
     }
 
+    if (order.status !== 'READY_FOR_PICKUP') {
+      res.status(400);
+      throw new Error('Order is not ready for pickup yet');
+    }
+
     if (order.deliveryPartner) {
       res.status(400);
       throw new Error('Order already accepted by another partner');
     }
 
     order.deliveryPartner = req.user._id;
-    order.status = 'OUT_FOR_DELIVERY';
+    // Don't change status to OUT_FOR_DELIVERY yet, allow partner to mark it manually
     await order.save();
 
-    // Update Partner Status
-    const DeliveryPartner = require('../models/DeliveryPartner');
-    await DeliveryPartner.updateOne(
-      { userId: req.user._id },
-      { 'status.currentOrder': order._id, 'status.isAvailable': false }
-    );
+    // Populate partner details for the live update
+    const freshOrder = await Order.findById(order._id).populate('deliveryPartner', 'profile.name');
 
     // Socket Emit
     try {
       const io = require('../socket').getIO();
+      const restaurantRoom = order.restaurant._id ? order.restaurant._id.toString() : order.restaurant.toString();
+
+      // Notify customer
       io.to(order.user.toString()).emit('order_status_updated', {
         orderId: order._id,
         status: order.status
+      });
+
+      // Notify restaurant about the assigned partner
+      io.to(restaurantRoom).emit('partner_assigned', {
+        orderId: order._id,
+        deliveryPartner: freshOrder.deliveryPartner
       });
     } catch (err) { console.error(err); }
 
@@ -241,8 +281,8 @@ const getActiveDeliveryOrder = async (req, res, next) => {
   try {
     const order = await Order.findOne({
       deliveryPartner: req.user._id,
-      status: { $in: ['OUT_FOR_DELIVERY'] }
-    }).populate('restaurant').populate('user', 'profile address');
+      status: { $in: ['PLACED', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY'] }
+    }).populate('restaurant').populate('user', 'profile'); // Simplified populate to avoid 'address' subfield errors if missing
 
     res.json({
       success: true,

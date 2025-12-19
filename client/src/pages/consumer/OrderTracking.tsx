@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   CheckCircle, Clock, MapPin,
   ChefHat, Truck, ArrowRight,
-  Loader2, Phone, MessageSquare, Star
+  Loader2, Phone, MessageSquare, Star, Package
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -25,6 +25,7 @@ const OrderTracking = () => {
     { id: 'PLACED', label: 'Order Placed', icon: Clock },
     { id: 'CONFIRMED', label: 'Confirmed', icon: CheckCircle },
     { id: 'PREPARING', label: 'Preparing', icon: ChefHat },
+    { id: 'READY_FOR_PICKUP', label: 'Food Ready', icon: Package },
     { id: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', icon: Truck },
     { id: 'DELIVERED', label: 'Delivered', icon: CheckCircle }
   ];
