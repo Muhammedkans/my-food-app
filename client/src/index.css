@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;700;800&display=swap');
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+/* Theme Configuration for v4 */
+@theme {
+  --color-primary: #00f3ff;
+  --color-primary-hover: #00cbe6;
+  --color-primary-glow: rgba(0, 243, 255, 0.5);
+  --color-secondary: #7000ff;
+  --color-secondary-hover: #5e00d7;
+
+  --color-dark-900: #0f172a;
+  --color-dark-800: #1e293b;
+  --color-dark-700: #334155;
+  --color-dark-600: #475569;
+  --color-dark-glass: rgba(15, 23, 42, 0.7);
+
+  --color-surface-light: #f8fafc;
+  --color-surface-dark: #0f172a;
+
+  --font-sans: Inter, sans-serif;
+  --font-display: Outfit, sans-serif;
+
+  --shadow-neon-blue: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.3);
+  --shadow-neon-purple: 0 0 10px rgba(112, 0, 255, 0.5), 0 0 20px rgba(112, 0, 255, 0.3);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+
+  --backdrop-blur-xs: 2px;
+}
+
+@layer base {
+  body {
+    @apply bg-dark-900 text-white font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-2 bg-primary text-dark-900 font-bold rounded-lg hover:bg-primary-hover transition-all duration-300 transform hover:scale-105 shadow-neon-blue;
+  }
+
+  .btn-outline {
+    @apply px-6 py-2 border-2 border-primary text-primary font-bold rounded-lg hover:bg-primary hover:text-dark-900 transition-all duration-300;
+  }
+
+  .glass-panel {
+    @apply bg-dark-glass backdrop-blur-md border border-white/10 rounded-xl;
+  }
+
+  .input-field {
+    @apply w-full bg-dark-800 border border-dark-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-300;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dark-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-dark-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-dark-600;
+}
