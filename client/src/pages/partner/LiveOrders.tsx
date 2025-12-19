@@ -7,11 +7,11 @@ import {
   AlertCircle,
   ArrowRight,
   Loader2,
-  Phone,
   MapPin,
   Package
 } from 'lucide-react';
 import api from '../../services/api';
+import { socket } from '../../services/socket';
 
 const LiveOrders = () => {
   const [orders, setOrders] = useState<any[]>([]);
@@ -44,56 +44,71 @@ const LiveOrders = () => {
   };
 
   useEffect(() => {
-    if (restaurantId) {
-      fetchOrders();
+    if (!restaurantId) return;
 
-      // Real-time socket listener for new orders
-      import('../../services/socket').then(({ socket }) => {
-        socket.connect();
+    fetchOrders();
+
+    // Connect and join room
+    const joinRoom = () => {
+      if (restaurantId) {
         socket.emit('join_room', restaurantId);
+        console.log(`Socket joining room: ${restaurantId}`);
+      }
+    };
 
-        socket.on('new_order', (newOrder: any) => {
-          setOrders(prev => [newOrder, ...prev]);
-
-          // Play sound for new order
-          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-          audio.play().catch(e => console.log('Order sound blocked:', e));
-
-          if (Notification.permission === 'granted') {
-            new Notification('New Incoming Order!', { body: `New order from ${newOrder.user?.profile?.name || 'Customer'}` });
-          }
-        });
-
-        socket.on('order_status_updated', (data: { orderId: string, status: string }) => {
-          setOrders(prev => prev.map(o => o._id === data.orderId ? { ...o, status: data.status } : o));
-        });
-
-        socket.on('partner_assigned', (data: { orderId: string, deliveryPartner: any }) => {
-          setOrders(prev => prev.map(o => o._id === data.orderId ? { ...o, deliveryPartner: data.deliveryPartner } : o));
-        });
-
-        return () => {
-          socket.off('new_order');
-          socket.off('order_status_updated');
-          socket.off('partner_assigned');
-          socket.disconnect();
-        };
-      });
+    if (!socket.connected) {
+      socket.connect();
+    } else {
+      joinRoom();
     }
 
+    socket.on('connect', joinRoom);
+
+    const handleNewOrder = (newOrder: any) => {
+      setOrders(prev => [newOrder, ...prev]);
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.play().catch(e => console.log('Order sound blocked:', e));
+
+      if (Notification.permission === 'granted') {
+        new Notification('New Incoming Order!', { body: `New order from ${newOrder.user?.profile?.name || 'Customer'}` });
+      }
+    };
+
+    const handleStatusUpdate = (data: { orderId: string, status: string }) => {
+      setOrders(prev => prev.map(o => o._id === data.orderId ? { ...o, status: data.status } : o));
+    };
+
+    const handlePartnerAssigned = (data: { orderId: string, deliveryPartner: any }) => {
+      setOrders(prev => prev.map(o => o._id === data.orderId ? { ...o, deliveryPartner: data.deliveryPartner } : o));
+    };
+
+    socket.on('new_order', handleNewOrder);
+    socket.on('order_status_updated', handleStatusUpdate);
+    socket.on('partner_assigned', handlePartnerAssigned);
+
+    return () => {
+      socket.off('connect', joinRoom);
+      socket.off('new_order', handleNewOrder);
+      socket.off('order_status_updated', handleStatusUpdate);
+      socket.off('partner_assigned', handlePartnerAssigned);
+    };
+  }, [restaurantId]);
+
+  useEffect(() => {
     if (Notification.permission === 'default') {
       Notification.requestPermission();
     }
-  }, [restaurantId]);
+  }, []);
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
     try {
       await api.patch(`/orders/${orderId}/status`, { status: newStatus });
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update status", err);
-      alert("Failed to update order status");
+      const msg = err.response?.data?.message || err.message || "Failed to update order status";
+      alert(`Error: ${msg}`);
     } finally {
       setUpdatingId(null);
     }

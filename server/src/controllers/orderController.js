@@ -141,9 +141,12 @@ const getRestaurantOrders = async (req, res, next) => {
 const updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
+    console.log(`Updating order ${req.params.id} to status: ${status}`);
+
     const order = await Order.findById(req.params.id);
 
     if (!order) {
+      console.log(`Order ${req.params.id} not found`);
       res.status(404);
       throw new Error('Order not found');
     }
@@ -151,12 +154,14 @@ const updateOrderStatus = async (req, res, next) => {
     // Status validation
     const validStatuses = ['PLACED', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
     if (!validStatuses.includes(status)) {
+      console.log(`Invalid status: ${status}`);
       res.status(400);
       throw new Error('Invalid status');
     }
 
     order.status = status;
     const updatedOrder = await order.save();
+    console.log(`Order ${order._id} successfully updated to ${status}`);
 
     // Real-time update via Socket.IO
     try {

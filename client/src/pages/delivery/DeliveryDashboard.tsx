@@ -4,6 +4,7 @@ import { MapPin, Navigation, Package, LogOut, ChevronRight } from 'lucide-react'
 import { logout } from '../../store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { socket } from '../../services/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DeliveryDashboard = () => {
@@ -18,31 +19,44 @@ const DeliveryDashboard = () => {
     fetchDashboardData();
 
     // Connect socket and listen for live orders
-    import('../../services/socket').then(({ socket }) => {
-      socket.connect();
-      socket.emit('join_room', 'delivery_partners');
+    if (!socket.connected) socket.connect();
+    socket.emit('join_room', 'delivery_partners');
+    if (user?._id) socket.emit('join_room', user._id); // Join personal room for status updates
 
-      socket.on('new_delivery_available', (newOrder: any) => {
-        setAvailableOrders(prev => [newOrder, ...prev]);
+    const handleNewDelivery = (newOrder: any) => {
+      setAvailableOrders(prev => [newOrder, ...prev]);
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+      audio.play().catch(e => console.log('Audio play failed:', e));
 
-        // Professional Sound Notification
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-        audio.play().catch(e => console.log('Audio play failed:', e));
+      if (Notification.permission === 'granted') {
+        new Notification('New Order!', {
+          body: `Pickup from ${newOrder.restaurant?.name}`,
+          icon: newOrder.restaurant?.assets?.logo
+        });
+      }
+    };
 
-        if (Notification.permission === 'granted') {
-          new Notification('New Order!', {
-            body: `Pickup from ${newOrder.restaurant?.name}`,
-            icon: newOrder.restaurant?.assets?.logo
-          });
+    const handleStatusUpdate = (data: { orderId: string, status: string }) => {
+      setActiveOrder((prev: any) => {
+        if (prev && prev._id === data.orderId) {
+          return { ...prev, status: data.status };
         }
+        return prev;
       });
+      // Also remove from available if it was there and someone else took it or it was cancelled
+      setAvailableOrders(prev => prev.filter(o => o._id !== data.orderId));
+    };
 
-      return () => {
-        socket.off('new_delivery_available');
-        socket.disconnect();
-      };
-    });
+    socket.on('new_delivery_available', handleNewDelivery);
+    socket.on('order_status_updated', handleStatusUpdate);
 
+    return () => {
+      socket.off('new_delivery_available', handleNewDelivery);
+      socket.off('order_status_updated', handleStatusUpdate);
+    };
+  }, [user?._id]);
+
+  useEffect(() => {
     if (Notification.permission === 'default') {
       Notification.requestPermission();
     }
@@ -228,12 +242,12 @@ const DeliveryDashboard = () => {
                           onClick={() => handleUpdateStatus('OUT_FOR_DELIVERY')}
                           disabled={activeOrder.status === 'OUT_FOR_DELIVERY' || activeOrder.status === 'DELIVERED' || activeOrder.status !== 'READY_FOR_PICKUP'}
                           className={`py-4 rounded-xl font-bold uppercase tracking-widest text-xs border-2 transition-all ${activeOrder.status === 'OUT_FOR_DELIVERY'
-                              ? 'bg-orange-600 text-white border-orange-600 shadow-lg shadow-orange-200'
-                              : activeOrder.status === 'DELIVERED'
-                                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                : activeOrder.status === 'READY_FOR_PICKUP'
-                                  ? 'bg-white border-primary text-primary hover:bg-primary/5 hover:scale-[1.02]'
-                                  : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                            ? 'bg-orange-600 text-white border-orange-600 shadow-lg shadow-orange-200'
+                            : activeOrder.status === 'DELIVERED'
+                              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                              : activeOrder.status === 'READY_FOR_PICKUP'
+                                ? 'bg-white border-primary text-primary hover:bg-primary/5 hover:scale-[1.02]'
+                                : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                             }`}
                         >
                           {activeOrder.status === 'OUT_FOR_DELIVERY' ? '✓ Picked Up' : 'Pick Up / Out for Delivery'}
@@ -242,10 +256,10 @@ const DeliveryDashboard = () => {
                           onClick={() => handleUpdateStatus('DELIVERED')}
                           disabled={activeOrder.status !== 'OUT_FOR_DELIVERY' || activeOrder.status === 'DELIVERED'}
                           className={`py-4 rounded-xl font-bold uppercase tracking-widest text-xs border-2 transition-all ${activeOrder.status === 'DELIVERED'
-                              ? 'bg-green-600 text-white border-green-600 shadow-lg shadow-green-200'
-                              : activeOrder.status === 'OUT_FOR_DELIVERY'
-                                ? 'bg-white border-green-600 text-green-600 hover:bg-green-50 hover:scale-[1.02]'
-                                : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                            ? 'bg-green-600 text-white border-green-600 shadow-lg shadow-green-200'
+                            : activeOrder.status === 'OUT_FOR_DELIVERY'
+                              ? 'bg-white border-green-600 text-green-600 hover:bg-green-50 hover:scale-[1.02]'
+                              : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                             }`}
                         >
                           {activeOrder.status === 'DELIVERED' ? '✓ Delivered' : 'Mark as Delivered'}

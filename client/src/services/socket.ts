@@ -4,5 +4,6 @@ const SOCKET_URL = 'http://localhost:5001';
 
 export const socket = io(SOCKET_URL, {
   autoConnect: false,
-  withCredentials: true
+  withCredentials: true,
+  transports: ['websocket', 'polling']
 });
