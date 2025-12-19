@@ -281,7 +281,7 @@ const getActiveDeliveryOrder = async (req, res, next) => {
   try {
     const order = await Order.findOne({
       deliveryPartner: req.user._id,
-      status: { $in: ['PLACED', 'CONFIRMED', 'PREPARING', 'OUT_FOR_DELIVERY'] }
+      status: { $in: ['PLACED', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY'] }
     }).populate('restaurant').populate('user', 'profile'); // Simplified populate to avoid 'address' subfield errors if missing
 
     res.json({
