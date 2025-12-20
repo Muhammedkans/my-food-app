@@ -62,6 +62,28 @@ const verifyPayment = async (req, res, next) => {
         order.status = 'PLACED'; // Officially placed now
         await order.save();
 
+        // Real-time update for Restaurant and Customer
+        try {
+          const io = require('../socket').getIO();
+
+          // 1. Notify Customer
+          io.to(order.user.toString()).emit('order_status_updated', {
+            orderId: order._id,
+            status: 'PLACED'
+          });
+
+          // 2. Notify Restaurant (The piece you were missing!)
+          const restaurantRoom = order.restaurant.toString();
+          io.to(restaurantRoom).emit('order_status_updated', {
+            orderId: order._id,
+            status: 'PLACED'
+          });
+
+          console.log(`Payment success: notified restaurant ${restaurantRoom} about order ${order._id}`);
+        } catch (err) {
+          console.error("Socket emit failed after payment verify", err);
+        }
+
         return res.json({
           success: true,
           message: "Payment verified successfully"

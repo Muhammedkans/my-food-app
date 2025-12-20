@@ -116,6 +116,7 @@ const LiveOrders = () => {
 
   const getStatusConfig = (status: string, deliveryPartner?: any) => {
     switch (status) {
+      case 'PENDING': return { icon: Clock, color: 'text-gray-400', bg: 'bg-gray-50', border: 'border-gray-100', label: 'Pending Payment' };
       case 'PLACED': return { icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', label: 'New Order' };
       case 'CONFIRMED': return { icon: CheckCircle, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', label: 'Accepted' };
       case 'PREPARING': return { icon: ChefHat, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100', label: 'Cooking' };
