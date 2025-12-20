@@ -134,7 +134,7 @@ const Checkout = () => {
 
             if (verifyRes.data.success) {
               dispatch(clearCart());
-              navigate(`/orders?id=${nativeOrderId}`);
+              navigate(`/order-success/${nativeOrderId}`);
             }
           } catch (err: any) {
             alert("Verification failed: " + (err.response?.data?.message || "Please contact support"));

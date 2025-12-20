@@ -8,7 +8,9 @@ const {
   updateOrderStatus,
   getAvailableDeliveryOrders,
   acceptDeliveryOrder,
-  getActiveDeliveryOrder
+  getActiveDeliveryOrder,
+  getDeliveryPartnerOrders,
+  getDeliveryStats
 } = require('../controllers/orderController');
 const { protect } = require('../middlewares/authMiddleware');
 
@@ -23,6 +25,12 @@ router.route('/delivery/available')
 
 router.route('/delivery/active')
   .get(protect, getActiveDeliveryOrder);
+
+router.route('/delivery/history')
+  .get(protect, getDeliveryPartnerOrders);
+
+router.route('/delivery/stats')
+  .get(protect, getDeliveryStats);
 
 router.route('/:id/accept')
   .patch(protect, acceptDeliveryOrder);

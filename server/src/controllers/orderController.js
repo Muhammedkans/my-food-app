@@ -302,6 +302,38 @@ const getActiveDeliveryOrder = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// @desc    Get delivery partner order history
+// @route   GET /api/orders/delivery/history
+// @access  Private
+const getDeliveryPartnerOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ deliveryPartner: req.user._id })
+      .populate('restaurant', 'name location')
+      .sort({ createdAt: -1 });
+    res.json({ success: true, data: orders });
+  } catch (err) { next(err); }
+};
+
+// @desc    Get delivery partner stats
+// @route   GET /api/orders/delivery/stats
+// @access  Private
+const getDeliveryStats = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ deliveryPartner: req.user._id });
+    const stats = {
+      totalOrders: orders.length,
+      completedOrders: orders.filter(o => o.status === 'DELIVERED').length,
+      totalEarnings: orders.reduce((sum, o) => {
+        if (o.status === 'DELIVERED') {
+          return sum + Math.round((o.billing?.deliveryFee || 0) * 0.8);
+        }
+        return sum;
+      }, 0)
+    };
+    res.json({ success: true, data: stats });
+  } catch (err) { next(err); }
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
@@ -310,5 +342,7 @@ module.exports = {
   updateOrderStatus,
   getAvailableDeliveryOrders,
   acceptDeliveryOrder,
-  getActiveDeliveryOrder
+  getActiveDeliveryOrder,
+  getDeliveryPartnerOrders,
+  getDeliveryStats
 };

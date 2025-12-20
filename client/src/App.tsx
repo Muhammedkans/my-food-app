@@ -13,6 +13,7 @@ import CartDrawer from './components/CartDrawer';
 import Checkout from './pages/consumer/Checkout';
 import OrderTracking from './pages/consumer/OrderTracking';
 import LiveOrders from './pages/partner/LiveOrders';
+import OrderSuccess from './pages/consumer/OrderSuccess';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -39,6 +40,7 @@ function App() {
           <Route path="/dashboard" element={<><Navbar /><CustomerDashboard /><Footer /></>} />
           <Route path="/checkout" element={<><Navbar /><Checkout /><Footer /></>} />
           <Route path="/orders" element={<><Navbar /><OrderTracking /><Footer /></>} />
+          <Route path="/order-success/:id" element={<><Navbar /><OrderSuccess /><Footer /></>} />
         </Route>
 
         {/* Partner Dashboard Routes */}

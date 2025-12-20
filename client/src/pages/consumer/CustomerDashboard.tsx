@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
+import { socket } from '../../services/socket';
 
 const CustomerDashboard = () => {
   const { user } = useSelector((state: any) => state.auth);
@@ -25,11 +26,27 @@ const CustomerDashboard = () => {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    if (user?._id) {
+      if (!socket.connected) socket.connect();
+      socket.emit('join_room', user._id);
+
+      const handleStatusUpdate = (data: { orderId: string, status: string }) => {
+        setOrders(prev => prev.map(o => o._id === data.orderId ? { ...o, status: data.status } : o));
+      };
+
+      socket.on('order_status_updated', handleStatusUpdate);
+
+      return () => {
+        socket.off('order_status_updated', handleStatusUpdate);
+      };
+    }
+  }, [user?._id]);
+
   const fetchOrders = async () => {
     setLoadingOrders(true);
     try {
-      // Assuming /orders/mine is the endpoint or similar
-      const res = await api.get('/orders/my-orders');
+      const res = await api.get('/orders/my');
       setOrders(res.data.data || []);
     } catch (err) {
       console.error("Failed to fetch orders", err);

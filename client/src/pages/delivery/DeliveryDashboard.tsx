@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { MapPin, Navigation, Package, LogOut, ChevronRight } from 'lucide-react';
+import { MapPin, Package, LogOut } from 'lucide-react';
 import { logout } from '../../store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
@@ -13,10 +13,13 @@ const DeliveryDashboard = () => {
   const navigate = useNavigate();
   const [availableOrders, setAvailableOrders] = useState<any[]>([]);
   const [activeOrder, setActiveOrder] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'available' | 'active'>('available');
+  const [activeTab, setActiveTab] = useState<'available' | 'active' | 'history'>('available');
+  const [history, setHistory] = useState<any[]>([]);
+  const [stats, setStats] = useState({ totalOrders: 0, completedOrders: 0, totalEarnings: 0 });
 
   useEffect(() => {
     fetchDashboardData();
+    fetchHistoryAndStats();
 
     // Connect socket and listen for live orders
     const joinRooms = () => {
@@ -52,6 +55,11 @@ const DeliveryDashboard = () => {
         return prev;
       });
       setAvailableOrders(prev => prev.filter(o => o._id !== data.orderId));
+
+      // Refresh stats if an order was delivered
+      if (data.status === 'DELIVERED') {
+        fetchHistoryAndStats();
+      }
     };
 
     socket.on('connect', joinRooms);
@@ -79,17 +87,29 @@ const DeliveryDashboard = () => {
       const currentRes = await api.get('/orders/delivery/active');
       if (currentRes.data.data) {
         setActiveOrder(currentRes.data.data);
-        setActiveTab('active');
+        if (activeTab === 'available') setActiveTab('active');
       }
     } catch (err) {
       console.error("Delivery dashboard error", err);
     }
   };
 
+  const fetchHistoryAndStats = async () => {
+    try {
+      const statsRes = await api.get('/orders/delivery/stats');
+      setStats(statsRes.data.data);
+      const historyRes = await api.get('/orders/delivery/history');
+      setHistory(historyRes.data.data || []);
+    } catch (err) {
+      console.error("Failed to fetch history", err);
+    }
+  };
+
   const handleAcceptOrder = async (orderId: string) => {
     try {
-      await api.patch(`/orders/${orderId}/accept`); // Changed to PATCH as per real-world standard
+      await api.patch(`/orders/${orderId}/accept`);
       fetchDashboardData();
+      setActiveTab('active');
     } catch (err) {
       alert('Could not accept order. It might have been taken by another partner.');
     }
@@ -100,6 +120,11 @@ const DeliveryDashboard = () => {
     try {
       await api.patch(`/orders/${activeOrder._id}/status`, { status });
       fetchDashboardData();
+      if (status === 'DELIVERED') {
+        fetchHistoryAndStats();
+        setActiveOrder(null);
+        setActiveTab('history');
+      }
     } catch (err) {
       alert('Failed to update status');
     }
@@ -124,7 +149,7 @@ const DeliveryDashboard = () => {
           <div className="flex items-center gap-6">
             <div className="text-right">
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Total Earnings</p>
-              <p className="text-2xl font-bold text-dark-900">₹{user?.wallet?.balance || 0}</p>
+              <p className="text-2xl font-bold text-dark-900">₹{stats.totalEarnings}</p>
             </div>
             <button
               onClick={() => { dispatch(logout()); navigate('/login'); }}
@@ -136,18 +161,24 @@ const DeliveryDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex p-1 bg-white rounded-2xl border border-gray-100 shadow-sm w-fit">
+        <div className="flex p-1 bg-white rounded-2xl border border-gray-100 shadow-sm w-fit overflow-x-auto">
           <button
             onClick={() => setActiveTab('available')}
-            className={`px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'available' ? 'bg-dark-900 text-white shadow-md' : 'text-gray-400 hover:text-dark-900'}`}
+            className={`px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'available' ? 'bg-dark-900 text-white shadow-md' : 'text-gray-400 hover:text-dark-900'}`}
           >
-            New Opportunities ({availableOrders.length})
+            Opportunities ({availableOrders.length})
           </button>
           <button
             onClick={() => setActiveTab('active')}
-            className={`px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-widest transition-all ${activeTab === 'active' ? 'bg-green-600 text-white shadow-md' : 'text-gray-400 hover:text-green-600'}`}
+            className={`px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'active' ? 'bg-green-600 text-white shadow-md' : 'text-gray-400 hover:text-green-600'}`}
           >
-            Active Delivery {activeOrder && <span className="w-2 h-2 bg-white rounded-full inline-block ml-2 animate-pulse" />}
+            Active {activeOrder && <span className="w-2 h-2 bg-white rounded-full inline-block ml-2 animate-pulse" />}
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`px-8 py-3 rounded-xl text-sm font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'history' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-blue-600'}`}
+          >
+            My Orders
           </button>
         </div>
 
@@ -167,7 +198,7 @@ const DeliveryDashboard = () => {
                     <Package size={40} />
                   </div>
                   <h3 className="text-xl font-bold text-dark-900 mb-2">No Orders Nearby</h3>
-                  <p className="text-gray-500 max-w-sm mx-auto">New delivery requests will appear here automatically. Stay online to receive notifications.</p>
+                  <p className="text-gray-500 max-w-sm mx-auto">New delivery requests will appear here automatically.</p>
                 </div>
               ) : (
                 availableOrders.map(order => (
@@ -183,41 +214,28 @@ const DeliveryDashboard = () => {
                         </div>
                       </div>
                       <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-full">
-                        ₹{Math.round(order.billing?.deliveryFee * 0.8 || 0)} Earning
+                        ₹{Math.round(order.billing?.deliveryFee * 0.8 || 0)}
                       </span>
                     </div>
 
                     <div className="space-y-4 mb-8">
-                      <div className="flex items-start gap-4">
-                        <div className="mt-1">
-                          <div className="w-2 h-2 rounded-full bg-gray-300 mb-1" />
-                          <div className="w-0.5 h-8 bg-gray-100 ml-[3px]" />
-                          <div className="w-2 h-2 rounded-full bg-primary mt-1" />
-                        </div>
-                        <div className="space-y-4 flex-1">
-                          <div>
-                            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Pickup</p>
-                            <p className="text-dark-900 font-medium text-sm leading-tight">{order.restaurant?.location?.address || 'Restaurant Location'}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Dropoff</p>
-                            <p className="text-dark-900 font-medium text-sm leading-tight text-primary">{order.deliveryAddress?.addressLine}, {order.deliveryAddress?.city}</p>
-                          </div>
-                        </div>
+                      <div className="flex items-start gap-4 text-xs font-medium text-gray-600">
+                        <MapPin size={14} className="mt-0.5 text-primary" />
+                        <p>{order.deliveryAddress?.addressLine}, {order.deliveryAddress?.city}</p>
                       </div>
                     </div>
 
                     <button
                       onClick={() => handleAcceptOrder(order._id)}
-                      className="w-full py-4 bg-dark-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-primary hover:text-dark-900 transition-all flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-dark-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-primary transition-all flex items-center justify-center gap-2"
                     >
-                      Accept Delivery <ChevronRight size={16} />
+                      Accept Delivery
                     </button>
                   </div>
                 ))
               )}
             </motion.div>
-          ) : (
+          ) : activeTab === 'active' ? (
             <motion.div
               key="active"
               initial={{ opacity: 0, y: 10 }}
@@ -227,90 +245,54 @@ const DeliveryDashboard = () => {
               {activeOrder ? (
                 <div className="bg-white p-10 rounded-[40px] shadow-lg border border-primary/20 relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-blue-600" />
-
                   <div className="flex flex-col md:flex-row gap-10">
                     <div className="flex-1 space-y-8">
                       <div>
                         <span className="text-primary font-bold text-xs uppercase tracking-[0.2em] mb-2 block">Current Status</span>
-                        <h2 className="text-4xl font-display font-bold text-dark-900">{activeOrder.status.replace('_', ' ')}</h2>
-                      </div>
-
-                      <div className="p-6 bg-gray-50 rounded-3xl space-y-4 border border-gray-100">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500 font-bold text-xs uppercase">Order ID</span>
-                          <span className="text-dark-900 font-mono font-bold">#{activeOrder._id.slice(-6)}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500 font-bold text-xs uppercase">Est. Earning</span>
-                          <span className="text-green-600 font-bold">₹{Math.round(activeOrder.billing.deliveryFee * 0.8)}</span>
-                        </div>
+                        <h2 className="text-4xl font-display font-bold text-dark-900">{activeOrder.status.replace(/_/g, ' ')}</h2>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button
                           onClick={() => handleUpdateStatus('OUT_FOR_DELIVERY')}
-                          disabled={activeOrder.status === 'OUT_FOR_DELIVERY' || activeOrder.status === 'DELIVERED' || activeOrder.status !== 'READY_FOR_PICKUP'}
-                          className={`py-4 rounded-xl font-bold uppercase tracking-widest text-xs border-2 transition-all ${activeOrder.status === 'OUT_FOR_DELIVERY'
-                            ? 'bg-orange-600 text-white border-orange-600 shadow-lg shadow-orange-200'
-                            : activeOrder.status === 'DELIVERED'
-                              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                              : activeOrder.status === 'READY_FOR_PICKUP'
-                                ? 'bg-white border-primary text-primary hover:bg-primary/5 hover:scale-[1.02]'
-                                : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                          disabled={activeOrder.status !== 'READY_FOR_PICKUP'}
+                          className={`py-4 rounded-xl font-bold uppercase tracking-widest text-xs border-2 transition-all ${activeOrder.status === 'OUT_FOR_DELIVERY' || activeOrder.status === 'DELIVERED'
+                            ? 'bg-orange-600 text-white border-orange-600 shadow-lg'
+                            : activeOrder.status === 'READY_FOR_PICKUP'
+                              ? 'bg-white border-primary text-primary hover:bg-primary/5'
+                              : 'bg-gray-100 text-gray-400 border-gray-200'
                             }`}
                         >
-                          {activeOrder.status === 'OUT_FOR_DELIVERY' ? '✓ Picked Up' : 'Pick Up / Out for Delivery'}
+                          {activeOrder.status === 'OUT_FOR_DELIVERY' ? '✓ Picked Up' : 'Pick Up Food'}
                         </button>
                         <button
                           onClick={() => handleUpdateStatus('DELIVERED')}
-                          disabled={activeOrder.status !== 'OUT_FOR_DELIVERY' || activeOrder.status === 'DELIVERED'}
+                          disabled={activeOrder.status !== 'OUT_FOR_DELIVERY'}
                           className={`py-4 rounded-xl font-bold uppercase tracking-widest text-xs border-2 transition-all ${activeOrder.status === 'DELIVERED'
-                            ? 'bg-green-600 text-white border-green-600 shadow-lg shadow-green-200'
+                            ? 'bg-green-600 text-white border-green-600'
                             : activeOrder.status === 'OUT_FOR_DELIVERY'
-                              ? 'bg-white border-green-600 text-green-600 hover:bg-green-50 hover:scale-[1.02]'
-                              : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                              ? 'bg-white border-green-600 text-green-600 hover:bg-green-50'
+                              : 'bg-gray-100 text-gray-400 border-gray-200'
                             }`}
                         >
-                          {activeOrder.status === 'DELIVERED' ? '✓ Delivered' : 'Mark as Delivered'}
+                          Mark as Delivered
                         </button>
                       </div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">
-                        {activeOrder.status === 'READY_FOR_PICKUP'
-                          ? '🔥 Handshake: Restaurant has confirmed food is on the counter. Pick it up now!'
-                          : activeOrder.status === 'OUT_FOR_DELIVERY'
-                            ? 'Final Step: Mark as delivered once you reach the customer.'
-                            : 'Waiting for restaurant to confirm food is ready...'}
-                      </p>
-                    </div>
 
-                    <div className="flex-1 bg-dark-900 rounded-[30px] p-8 text-white relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-                      <div className="relative z-10 space-y-8">
-                        <div>
-                          <h4 className="font-bold text-lg mb-4 flex items-center gap-2"><MapPin size={20} className="text-primary" /> Delivery Route</h4>
-                          <div className="space-y-6 border-l-2 border-white/10 ml-2.5 pl-6 py-2">
-                            <div className="relative">
-                              <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-dark-900 border-2 border-white" />
-                              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Pickup From</p>
-                              <p className="font-bold text-lg">{activeOrder.restaurant?.name}</p>
-                              <p className="text-gray-500 text-sm mt-1">{activeOrder.restaurant?.address?.street || "Location details unavailable"}</p>
-                            </div>
-                            <div className="relative">
-                              <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-primary border-4 border-dark-900" />
-                              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Deliver To</p>
-                              <p className="font-bold text-lg">{activeOrder.user?.profile?.name || "Customer"}</p>
-                              <p className="text-gray-500 text-sm mt-1">{activeOrder.deliveryAddress?.addressLine}, {activeOrder.deliveryAddress?.city}</p>
-                            </div>
+                      <div className="bg-dark-900 rounded-[30px] p-8 text-white relative overflow-hidden">
+                        <h4 className="font-bold text-lg mb-6 flex items-center gap-2"><MapPin size={20} className="text-primary" /> Route Details</h4>
+                        <div className="space-y-6 border-l-2 border-white/10 ml-2.5 pl-6">
+                          <div>
+                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Restaurant</p>
+                            <p className="font-bold">{activeOrder.restaurant?.name}</p>
+                            <p className="text-gray-500 text-sm mt-1">{activeOrder.restaurant?.location?.address || "Location details unavailable"}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Customer</p>
+                            <p className="font-bold">{activeOrder.user?.profile?.name || "Customer"}</p>
+                            <p className="text-gray-500 text-sm mt-1">{activeOrder.deliveryAddress?.addressLine}</p>
                           </div>
                         </div>
-                        <a
-                          href={`https://www.google.com/maps/dir/?api=1&destination=${activeOrder.deliveryAddress?.addressLine}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="w-full py-4 bg-primary text-dark-900 rounded-2xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-white transition-colors"
-                        >
-                          <Navigation size={18} /> Start Navigation
-                        </a>
                       </div>
                     </div>
                   </div>
@@ -318,9 +300,60 @@ const DeliveryDashboard = () => {
               ) : (
                 <div className="text-center py-20 bg-white rounded-[40px] border border-gray-100">
                   <h3 className="text-xl font-bold text-gray-400">No Active Delivery</h3>
-                  <p className="text-gray-400 mt-2">Switch to "New Opportunities" to accept orders.</p>
                 </div>
               )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="history"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-8"
+            >
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                  { label: 'Deliveries', value: stats.completedOrders, color: 'text-primary' },
+                  { label: 'Total Earnings', value: `₹${stats.totalEarnings}`, color: 'text-green-600' },
+                  { label: 'Experience', value: 'Pro Pilot', color: 'text-purple-600' }
+                ].map((stat, i) => (
+                  <div key={i} className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">{stat.label}</p>
+                    <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* History List */}
+              <div className="bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-8 border-b border-gray-50">
+                  <h3 className="text-xl font-bold text-dark-900">Delivery History</h3>
+                </div>
+                {history.length === 0 ? (
+                  <div className="p-20 text-center text-gray-400 font-bold">No completed orders yet.</div>
+                ) : (
+                  <div className="divide-y divide-gray-50">
+                    {history.map(order => (
+                      <div key={order._id} className="p-8 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center gap-6">
+                          <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400">
+                            <Package size={24} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-dark-900">{order.restaurant?.name || 'Restaurant'}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{new Date(order.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-black text-green-600">+₹{Math.round((order.billing?.deliveryFee || 0) * 0.8)}</p>
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{order.status}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
