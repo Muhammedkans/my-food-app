@@ -268,6 +268,12 @@ const acceptDeliveryOrder = async (req, res, next) => {
         orderId: order._id,
         deliveryPartner: freshOrder.deliveryPartner
       });
+
+      // Also ensure status badge stays in sync
+      io.to(restaurantRoom).emit('order_status_updated', {
+        orderId: order._id,
+        status: order.status
+      });
     } catch (err) { console.error(err); }
 
     res.json({

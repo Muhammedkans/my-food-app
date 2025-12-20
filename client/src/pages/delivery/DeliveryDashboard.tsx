@@ -19,9 +19,17 @@ const DeliveryDashboard = () => {
     fetchDashboardData();
 
     // Connect socket and listen for live orders
-    if (!socket.connected) socket.connect();
-    socket.emit('join_room', 'delivery_partners');
-    if (user?._id) socket.emit('join_room', user._id); // Join personal room for status updates
+    const joinRooms = () => {
+      console.log("Delivery Socket Connected - Joining Rooms");
+      socket.emit('join_room', 'delivery_partners');
+      if (user?._id) socket.emit('join_room', user._id);
+    };
+
+    if (!socket.connected) {
+      socket.connect();
+    } else {
+      joinRooms();
+    }
 
     const handleNewDelivery = (newOrder: any) => {
       setAvailableOrders(prev => [newOrder, ...prev]);
@@ -43,14 +51,15 @@ const DeliveryDashboard = () => {
         }
         return prev;
       });
-      // Also remove from available if it was there and someone else took it or it was cancelled
       setAvailableOrders(prev => prev.filter(o => o._id !== data.orderId));
     };
 
+    socket.on('connect', joinRooms);
     socket.on('new_delivery_available', handleNewDelivery);
     socket.on('order_status_updated', handleStatusUpdate);
 
     return () => {
+      socket.off('connect', joinRooms);
       socket.off('new_delivery_available', handleNewDelivery);
       socket.off('order_status_updated', handleStatusUpdate);
     };

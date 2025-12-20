@@ -121,8 +121,8 @@ const LiveOrders = () => {
       case 'PREPARING': return { icon: ChefHat, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-100', label: 'Cooking' };
       case 'READY_FOR_PICKUP':
         return deliveryPartner
-          ? { icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', label: 'Driver Arriving' }
-          : { icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', label: 'Ready for Pickup' };
+          ? { icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', label: 'Partner Arriving' }
+          : { icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', label: 'Food Ready' };
       case 'OUT_FOR_DELIVERY': return { icon: Truck, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', label: 'Out for Delivery' };
       case 'DELIVERED': return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', label: 'Delivered Success ✅' };
       case 'CANCELLED': return { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', label: 'Cancelled' };
@@ -238,11 +238,15 @@ const LiveOrders = () => {
                             </div>
                             <div>
                               <p className="text-sm font-bold text-blue-900">{order.deliveryPartner?.profile?.name || 'Assigned'}</p>
-                              <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">On the way to pickup</p>
+                              <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">
+                                {order.status === 'READY_FOR_PICKUP' ? 'On the way to pickup' :
+                                  order.status === 'OUT_FOR_DELIVERY' ? 'Heading to customer' :
+                                    'Order Delivered ✅'}
+                              </p>
                             </div>
                           </div>
                         ) : (
-                          <p className="text-xs font-bold text-gray-400 bg-gray-50 p-3 rounded-xl border border-gray-100 border-dashed italic">Waiting for partner choice...</p>
+                          <p className="text-xs font-bold text-gray-400 bg-gray-50 p-3 rounded-xl border border-gray-100 border-dashed italic">Waiting for delivery partner...</p>
                         )}
                       </div>
                     </div>
