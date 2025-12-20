@@ -8,6 +8,9 @@ const mongoSanitize = require('express-mongo-sanitize');
 
 const app = express();
 
+// Trust proxy for Render/Vercel (fixes rate limit error)
+app.set('trust proxy', 1);
+
 // Middlewares
 app.use(helmet());
 const allowedOrigins = [
