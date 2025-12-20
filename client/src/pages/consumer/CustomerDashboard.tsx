@@ -7,18 +7,24 @@ import {
   History
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
 import { socket } from '../../services/socket';
 
 const CustomerDashboard = () => {
   const { user } = useSelector((state: any) => state.auth);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const tab = searchParams.get('tab') || 'overview';
+    setActiveTab(tab);
+  }, [searchParams]);
 
   useEffect(() => {
     if (activeTab === 'orders') {

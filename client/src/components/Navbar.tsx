@@ -120,7 +120,7 @@ const Navbar = () => {
                         </Link>
                       )}
                       <Link
-                        to="/orders"
+                        to="/dashboard?tab=orders"
                         className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
                       >
                         <ShoppingBag size={16} /> My Orders
@@ -173,7 +173,7 @@ const Navbar = () => {
           {isAuthenticated ? (
             <>
               <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl hover:bg-gray-50 font-medium text-gray-600">My Profile</Link>
-              <Link to="/orders" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl hover:bg-gray-50 font-medium text-gray-600">Orders</Link>
+              <Link to="/dashboard?tab=orders" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl hover:bg-gray-50 font-medium text-gray-600">Orders</Link>
               <button onClick={handleLogout} className="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 font-medium text-red-500">Sign Out</button>
             </>
           ) : (

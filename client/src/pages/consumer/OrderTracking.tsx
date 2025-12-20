@@ -37,7 +37,10 @@ const OrderTracking = () => {
 
   useEffect(() => {
     const fetchOrder = async () => {
-      if (!orderId) return;
+      if (!orderId) {
+        setLoading(false);
+        return;
+      }
       try {
         const res = await api.get(`/orders/${orderId}`);
         if (res.data.success) {
@@ -64,10 +67,17 @@ const OrderTracking = () => {
           setOrder((prev: any) => ({ ...prev, status: data.status }));
         }
       });
+
+      socket.on('partner_assigned', (data) => {
+        if (data.orderId === orderId) {
+          setOrder((prev: any) => ({ ...prev, deliveryPartner: data.deliveryPartner }));
+        }
+      });
     }
 
     return () => {
       socket.off('order_status_updated');
+      socket.off('partner_assigned');
       socket.disconnect();
     };
   }, [orderId, user?._id]);
@@ -223,11 +233,11 @@ const OrderTracking = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="flex items-center gap-6 relative z-10">
                   <div className="w-14 h-14 rounded-2xl bg-dark-800 border border-white/5 overflow-hidden relative">
-                    <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200" className="w-full h-full object-cover" />
+                    <img src={order.deliveryPartner?.profile?.avatar || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200"} className="w-full h-full object-cover" />
                     <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-dark-900" />
                   </div>
                   <div>
-                    <h4 className="text-white font-bold text-lg">Vikram Singh</h4>
+                    <h4 className="text-white font-bold text-lg">{order.deliveryPartner?.profile?.name || 'Vikram Singh'}</h4>
                     <p className="text-gray-500 text-xs flex items-center gap-1 font-bold italic">
                       <Star size={10} className="text-primary fill-primary" /> 4.9 • Delivery Partner
                     </p>

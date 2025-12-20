@@ -99,6 +99,7 @@ const getOrderById = async (req, res, next) => {
     const order = await Order.findById(req.params.id)
       .populate('user', 'profile.name email')
       .populate('restaurant', 'name info.location')
+      .populate('deliveryPartner', 'profile.name profile.avatar')
       .populate('items.menuItem');
 
     if (order) {
