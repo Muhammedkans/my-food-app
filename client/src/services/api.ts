@@ -22,16 +22,19 @@ export const getFullImageUrl = (path: string) => {
 
   const sPath = path.trim();
 
-  // 1. If the path CONTAINS a full cloudinary/external URL anywhere (fix for the localhost prefix bug)
-  const cloudinaryMatch = sPath.match(/https?:\/\/[^/]*cloudinary\.com\/[^\s]*/);
-  if (cloudinaryMatch) return cloudinaryMatch[0];
-
-  const externalMatch = sPath.match(/https?:\/\/[\w.-]+(?:\.[\w.-]+)+[/\w .-]*\/?/);
-  if (externalMatch && !externalMatch[0].includes('localhost') && !externalMatch[0].includes('127.0.0.1')) {
-    return externalMatch[0];
+  // 1. Aggressive Cloudinary Extraction: If "https://res.cloudinary.com" exists anywhere in the string,
+  // extract everything from that point onwards. This fixes the "http://localhost:5001https://..." bug.
+  const cloudinaryIndex = sPath.indexOf('https://res.cloudinary.com');
+  if (cloudinaryIndex !== -1) {
+    return sPath.substring(cloudinaryIndex);
   }
 
-  // 2. Clear out local prefixes
+  // 2. Already a full URL (but not pointing to local dev servers)
+  if (sPath.startsWith('http') && !sPath.includes('localhost') && !sPath.includes('127.0.0.1')) {
+    return sPath;
+  }
+
+  // 3. Clean up local prefixes (if it was an absolute local URL pointing to an image)
   let cleanPath = sPath.replace(/^https?:\/\/localhost(:\d+)?/, '')
     .replace(/^https?:\/\/127\.0\.0\.1(:\d+)?/, '');
 
