@@ -4,10 +4,11 @@ const uploadFile = (req, res) => {
     throw new Error('No file uploaded');
   }
 
-  // Return the path relative to the server (client will need to prepend server URL)
-  // Or return a full URL if we knew the host. 
-  // For now, we return the relative path.
-  const filePath = `/uploads/${req.file.filename}`;
+  // In production (Cloudinary), req.file.path is the full URL
+  // In development (Local), req.file.path is the absolute system path, so we use /uploads/filename
+  const filePath = process.env.NODE_ENV === 'production'
+    ? req.file.path
+    : `/uploads/${req.file.filename}`;
 
   res.status(201).json({
     success: true,
