@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, X, Loader2 } from 'lucide-react';
-import api, { getBaseURL, getFullImageUrl } from '../../services/api';
+import api, { getFullImageUrl } from '../../services/api';
 
 interface ImageUploadProps {
   label: string;

@@ -15,34 +15,39 @@ export const getBaseURL = () => {
   return url.replace(/\/api\/?$/, '');
 };
 
-export const getFullImageUrl = (path: string) => {
+export const getFullImageUrl = (path: string | undefined | null) => {
   if (!path || typeof path !== 'string') {
     return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500';
   }
 
   const sPath = path.trim();
 
-  // 1. Aggressive Cloudinary Extraction: If "https://res.cloudinary.com" exists anywhere in the string,
-  // extract everything from that point onwards. This fixes the "http://localhost:5001https://..." bug.
-  const cloudinaryIndex = sPath.indexOf('https://res.cloudinary.com');
-  if (cloudinaryIndex !== -1) {
-    return sPath.substring(cloudinaryIndex);
+  // 1. Aggressive Extraction: Look for ANY valid web URL (Cloudinary, Unsplash, etc.)
+  // This fixes the "http://localhost:5001https://..." type bugs in existing data
+  const webUrlMatch = sPath.match(/(https?:\/\/[^\s]+)/);
+  if (webUrlMatch) {
+    const url = webUrlMatch[0];
+    // If it's a real external URL (not localhost), use it directly
+    if (!url.includes('localhost') && !url.includes('127.0.0.1')) {
+      return url;
+    }
   }
 
-  // 2. Already a full URL (but not pointing to local dev servers)
-  if (sPath.startsWith('http') && !sPath.includes('localhost') && !sPath.includes('127.0.0.1')) {
-    return sPath;
-  }
-
-  // 3. Clean up local prefixes (if it was an absolute local URL pointing to an image)
+  // 2. Local Cleanup: If it's a local path or a broken local URL
   let cleanPath = sPath.replace(/^https?:\/\/localhost(:\d+)?/, '')
     .replace(/^https?:\/\/127\.0\.0\.1(:\d+)?/, '');
 
+  // Ensure it starts with / and clean up common path prefix errors
   if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
   cleanPath = cleanPath.replace(/^\/api\//, '/');
+  cleanPath = cleanPath.replace(/^\/uploads\//, '/uploads/'); // Ensure single slash
 
   const base = getBaseURL();
-  return `${base}${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
+
+  // Final URL construction
+  const finalUrl = `${base}${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
+
+  return finalUrl;
 };
 
 // Response interceptor to handle 401s

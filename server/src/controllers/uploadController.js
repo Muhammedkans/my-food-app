@@ -6,7 +6,8 @@ const uploadFile = (req, res) => {
 
   // In production (Cloudinary), req.file.path is the full URL
   // In development (Local), req.file.path is the absolute system path, so we use /uploads/filename
-  const filePath = process.env.NODE_ENV === 'production'
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER || process.env.VERCEL;
+  const filePath = isProduction
     ? req.file.path
     : `/uploads/${req.file.filename}`;
 
