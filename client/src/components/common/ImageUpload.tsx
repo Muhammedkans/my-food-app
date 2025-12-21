@@ -31,9 +31,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ label, value, onChange, class
       });
       // Just send back what the server returns (could be Cloudinary URL or local path)
       onChange(res.data.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Failed to upload image');
+      const msg = err.response?.data?.message || 'Failed to upload image';
+      setError(msg);
     } finally {
       setUploading(false);
     }

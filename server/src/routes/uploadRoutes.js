@@ -9,6 +9,18 @@ const upload = isProduction
   ? require('../config/cloudinary').upload
   : require('../utils/fileUpload');
 
-router.post('/', protect, upload.single('image'), uploadFile);
+router.post('/', protect, (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      console.error('❌ Upload Error:', err);
+      return res.status(400).json({
+        success: false,
+        message: err.message || 'Image upload failed',
+        error: process.env.NODE_ENV === 'development' ? err : undefined
+      });
+    }
+    next();
+  });
+}, uploadFile);
 
 module.exports = router;
