@@ -16,38 +16,28 @@ export const getBaseURL = () => {
 };
 
 export const getFullImageUrl = (path: string | undefined | null) => {
-  if (!path || typeof path !== 'string') {
-    return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500';
+  if (!path || typeof path !== 'string' || path.trim() === '') {
+    return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'; // Sleek fallback
   }
 
   const sPath = path.trim();
 
-  // 1. Aggressive Extraction: Look for ANY valid web URL (Cloudinary, Unsplash, etc.)
-  // This fixes the "http://localhost:5001https://..." type bugs in existing data
-  const webUrlMatch = sPath.match(/(https?:\/\/[^\s]+)/);
-  if (webUrlMatch) {
-    const url = webUrlMatch[0];
-    // If it's a real external URL (not localhost), use it directly
-    if (!url.includes('localhost') && !url.includes('127.0.0.1')) {
-      return url;
-    }
+  // 1. If it's a Cloudinary or External URL (Fix for the past bug included just in case)
+  const cloudinaryMatch = sPath.match(/(https?:\/\/res\.cloudinary\.com\/[^\s]+)/);
+  if (cloudinaryMatch) return cloudinaryMatch[0];
+
+  if (sPath.startsWith('http') && !sPath.includes('localhost') && !sPath.includes('127.0.0.1')) {
+    return sPath;
   }
 
-  // 2. Local Cleanup: If it's a local path or a broken local URL
+  // 2. Local uploads or relative paths
   let cleanPath = sPath.replace(/^https?:\/\/localhost(:\d+)?/, '')
     .replace(/^https?:\/\/127\.0\.0\.1(:\d+)?/, '');
 
-  // Ensure it starts with / and clean up common path prefix errors
   if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
-  cleanPath = cleanPath.replace(/^\/api\//, '/');
-  cleanPath = cleanPath.replace(/^\/uploads\//, '/uploads/'); // Ensure single slash
 
   const base = getBaseURL();
-
-  // Final URL construction
-  const finalUrl = `${base}${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
-
-  return finalUrl;
+  return `${base}${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
 };
 
 // Response interceptor to handle 401s
