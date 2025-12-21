@@ -28,11 +28,11 @@ const seedData = async () => {
       ownerId: owner._id,
       status: { isOpen: true, isVerified: true, onboardingStage: 'COMPLETED' },
       assets: {
-        coverImage: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=1200',
-        logo: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=200',
+        coverImage: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766330076/neon_hearth_grgxhg.jpg',
+        logo: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766330158/restaurent1_o8235t.jpg',
         gallery: [
-          'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600',
-          'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600'
+          'https://res.cloudinary.com/ddnubmuty/image/upload/v1766330300/restaurent2_slbgqn.jpg',
+          'https://res.cloudinary.com/ddnubmuty/image/upload/v1766330610/restaurent3_xi8dls.jpg'
         ]
       },
       info: {
@@ -61,7 +61,7 @@ const seedData = async () => {
         name: 'Truffle Mushroom Pizza',
         price: 599,
         dietary: 'VEG',
-        image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800',
+        image: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766330690/trufflemashroom_pizza_erjzpv.jpg',
         categoryName: 'Pizzas',
         isBestSeller: true,
         spiceLevel: 'None',
@@ -72,7 +72,7 @@ const seedData = async () => {
         name: 'Pesto Fettuccine',
         price: 449,
         dietary: 'VEG',
-        image: 'https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=800',
+        image: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766330779/pestofutusine_bdhj6v.jpg',
         categoryName: 'Pastas',
         isBestSeller: false,
         spiceLevel: 'Mild'
@@ -81,12 +81,11 @@ const seedData = async () => {
 
     // 2. Sakura Cyber (Japanese Fusion)
     const rest2 = await Restaurant.create({
-      name: 'Sakura Cyber',
+      name: 'Sakura Ramen House',
       ownerId: owner._id,
       status: { isOpen: true, isVerified: true, onboardingStage: 'COMPLETED' },
       assets: {
-        coverImage: 'https://images.unsplash.com/photo-1581335443273-0414923eec3b?w=1200',
-        logo: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200'
+        coverImage: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766331410/ramen_shushi_v0acck.avif'
       },
       info: {
         cuisineTypes: ['Japanese', 'Sushi', 'Ramen'],
@@ -110,7 +109,7 @@ const seedData = async () => {
         name: 'Tonkotsu Ramen',
         price: 750,
         dietary: 'NON-VEG',
-        image: 'https://images.unsplash.com/photo-1552611052-33e04de081de?w=800',
+        image: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766331095/tonkostu_ramen_b5ww2j.jpg',
         categoryName: 'Ramen',
         isBestSeller: true,
         spiceLevel: 'Medium'
@@ -120,7 +119,7 @@ const seedData = async () => {
         name: 'Neon Sushi Platter',
         price: 1250,
         dietary: 'NON-VEG',
-        image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800',
+        image: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766331131/sushi_fr14dj.avif',
         categoryName: 'Sushi',
         isBestSeller: true
       }
@@ -132,8 +131,8 @@ const seedData = async () => {
       ownerId: owner._id,
       status: { isOpen: true, isVerified: true, onboardingStage: 'COMPLETED' },
       assets: {
-        coverImage: 'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=1200',
-        logo: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=200'
+        coverImage: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766333591/chicken_burger_dbib9b.jpg',
+        logo: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766333749/fish_burger_bjixau.avif'
       },
       info: {
         cuisineTypes: ['Fast Food', 'Burgers', 'Shakes'],
@@ -157,7 +156,7 @@ const seedData = async () => {
         name: 'Cyber Burger',
         price: 149,
         dietary: 'NON-VEG',
-        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800',
+        image: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766333871/cyber_burger_dki25o.avif',
         categoryName: 'Burgers',
         isBestSeller: true,
         spiceLevel: 'Hot'
@@ -167,7 +166,7 @@ const seedData = async () => {
         name: 'Electric Oreo Shake',
         price: 199,
         dietary: 'VEG',
-        image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=800',
+        image: 'https://res.cloudinary.com/ddnubmuty/image/upload/v1766333979/electric_oreo_shake_fmpabo.jpg',
         categoryName: 'Shakes',
         isBestSeller: false
       }
