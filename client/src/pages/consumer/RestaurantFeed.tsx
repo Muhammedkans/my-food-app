@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Star, Clock, Search, Loader2, Sparkles, TrendingUp, Bot, ChevronRight, X, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { addToCart } from '../../store/slices/cartSlice';
-import api from '../../services/api';
+import api, { getBaseURL } from '../../services/api';
 
 const RestaurantFeed = () => {
   const dispatch = useDispatch();
@@ -128,7 +128,11 @@ const RestaurantFeed = () => {
               >
                 <Link to={`/restaurant/${rec._id}`}>
                   <div className="h-44 relative overflow-hidden">
-                    <img src={rec.assets?.coverImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={rec.name} />
+                    <img
+                      src={rec.assets?.coverImage?.startsWith('http') ? rec.assets?.coverImage : `${getBaseURL()}${rec.assets?.coverImage}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      alt={rec.name}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent " />
                     {rec.info?.offers?.[0] && (
                       <div className="absolute bottom-4 left-4 right-4">
@@ -190,7 +194,7 @@ const RestaurantFeed = () => {
                 >
                   <Link to={`/restaurant/${restaurant._id}`} className="h-56 relative overflow-hidden block">
                     <img
-                      src={restaurant.assets?.coverImage}
+                      src={restaurant.assets?.coverImage?.startsWith('http') ? restaurant.assets?.coverImage : `${getBaseURL()}${restaurant.assets?.coverImage}`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       alt={restaurant.name}
                     />

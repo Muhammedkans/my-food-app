@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Loader2, Clock } from 'lucide-react';
+import { Edit2, Trash2, Plus, X, Search, Clock, ChevronRight, Upload, Sparkles, Wand2, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import api, { getBaseURL } from '../../services/api';
 import Modal from '../../components/Modal';
-import api from '../../services/api';
 import ImageUpload from '../../components/common/ImageUpload';
 
 const MenuManagement = () => {
@@ -9,7 +10,7 @@ const MenuManagement = () => {
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // Removed unused uploading and handleImageUpload since ImageUpload component handles it
+
   const [newItem, setNewItem] = useState({
     name: '',
     price: '',
@@ -98,7 +99,11 @@ const MenuManagement = () => {
         {menuItems.map((item) => (
           <div key={item._id} className="bg-white rounded-[32px] border border-gray-100 overflow-hidden group hover:border-primary/20 transition-all flex flex-col h-full shadow-sm hover:shadow-md">
             <div className="h-56 relative overflow-hidden shrink-0">
-              <img src={item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={item.name} />
+              <img
+                src={item.image?.startsWith('http') ? item.image : `${getBaseURL()}${item.image}`}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                alt={item.name}
+              />
               <div className="absolute top-4 left-4">
                 <div className={`w-4 h-4 border-2 ${item.dietary === 'VEG' ? 'border-green-600' : 'border-red-600'} flex items-center justify-center bg-white p-0.5`}>
                   <div className={`w-2 h-2 rounded-full ${item.dietary === 'VEG' ? 'bg-green-600' : 'bg-red-600'}`} />

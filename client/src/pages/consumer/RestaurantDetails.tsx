@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { addToCart } from '../../store/slices/cartSlice';
-import api from '../../services/api';
+import api, { getBaseURL } from '../../services/api';
 
 const RestaurantDetails = () => {
   const { id } = useParams();
@@ -77,7 +77,7 @@ const RestaurantDetails = () => {
       {/* Hero Header */}
       <div className="h-[45vh] relative overflow-hidden">
         <img
-          src={restaurant.assets?.coverImage}
+          src={restaurant.assets?.coverImage?.startsWith('http') ? restaurant.assets?.coverImage : `${getBaseURL()}${restaurant.assets?.coverImage}`}
           className="w-full h-full object-cover"
           alt={restaurant.name}
         />
@@ -272,7 +272,11 @@ const RestaurantDetails = () => {
                     className="bg-white rounded-[40px] p-6 border border-gray-100 hover:border-primary/20 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-8 group"
                   >
                     <div className="w-full md:w-52 h-52 rounded-[32px] overflow-hidden shrink-0 relative">
-                      <img src={item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.name} />
+                      <img
+                        src={item.image?.startsWith('http') ? item.image : `${getBaseURL()}${item.image}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        alt={item.name}
+                      />
                       {item.isBestSeller && (
                         <div className="absolute top-4 left-4 bg-amber-500 text-white text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1 shadow-lg">
                           <TrendingUp size={10} /> Bestseller
@@ -341,7 +345,11 @@ const RestaurantDetails = () => {
                     className="bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all group"
                   >
                     <div className="h-48 relative overflow-hidden">
-                      <img src={similar.assets?.coverImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={similar.name} />
+                      <img
+                        src={similar.assets?.coverImage?.startsWith('http') ? similar.assets?.coverImage : `${getBaseURL()}${similar.assets?.coverImage}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        alt={similar.name}
+                      />
                     </div>
                     <div className="p-6">
                       <h3 className="text-xl font-bold text-dark-900 group-hover:text-primary transition-colors mb-2">{similar.name}</h3>

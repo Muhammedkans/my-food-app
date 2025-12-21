@@ -11,21 +11,20 @@ const app = express();
 // Trust proxy for Render/Vercel (fixes rate limit error)
 app.set('trust proxy', 1);
 
-// Middlewares
-app.use(helmet());
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  'https://my-food-app-muhammedkans.vercel.app', // Adding the user's explicit vercel url if known
   'http://localhost:5173',
   'http://localhost:5174',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174'
 ].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+    // Allow requests with no origin (like mobile apps or curl) or if origin matches allowed list
+    if (!origin || allowedOrigins.some(o => origin.startsWith(o))) {
       callback(null, true);
     } else {
+      console.warn(`CORS blocked for origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
