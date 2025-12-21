@@ -10,6 +10,7 @@ const {
   getSimilarRestaurants,
   addReview,
   addMenuItem,
+  deleteMenuItem,
   approveRestaurant
 } = require('../controllers/restaurantController');
 const { protect, admin } = require('../middlewares/authMiddleware');
@@ -46,5 +47,7 @@ router.post('/:id/review', protect, addReview);
 
 router.route('/:id/menu')
   .post(protect, addMenuItem);
+
+router.delete('/:id/menu/:itemId', protect, deleteMenuItem);
 
 module.exports = router;

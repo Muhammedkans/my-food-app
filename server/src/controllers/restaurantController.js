@@ -320,6 +320,46 @@ const approveRestaurant = async (req, res, next) => {
   }
 };
 
+// @desc    Delete menu item
+// @route   DELETE /api/restaurants/:id/menu/:itemId
+// @access  Private (Owner only)
+const deleteMenuItem = async (req, res, next) => {
+  try {
+    const restaurant = await Restaurant.findById(req.params.id);
+
+    if (!restaurant) {
+      res.status(404);
+      throw new Error('Restaurant not found');
+    }
+
+    if (restaurant.ownerId.toString() !== req.user._id.toString() && req.user.auth.role !== 'admin') {
+      res.status(403);
+      throw new Error('Not authorized to update this restaurant');
+    }
+
+    const menuItem = await MenuItem.findById(req.params.itemId);
+
+    if (!menuItem) {
+      res.status(404);
+      throw new Error('Menu item not found');
+    }
+
+    if (menuItem.restaurantId.toString() !== req.params.id) {
+      res.status(400);
+      throw new Error('Menu item does not belong to this restaurant');
+    }
+
+    await menuItem.deleteOne();
+
+    res.json({
+      success: true,
+      message: 'Menu item removed successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerRestaurant,
   getRestaurants,
@@ -330,5 +370,6 @@ module.exports = {
   searchRestaurants,
   addReview,
   addMenuItem,
+  deleteMenuItem,
   approveRestaurant
 };

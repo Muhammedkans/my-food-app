@@ -10,6 +10,8 @@ const MenuManagement = () => {
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [newItem, setNewItem] = useState({
     name: '',
@@ -58,6 +60,22 @@ const MenuManagement = () => {
       });
     } catch (err) {
       alert("Failed to add menu item");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId || !restaurant) return;
+
+    setIsDeleting(true);
+    try {
+      await api.delete(`/restaurants/${restaurant._id}/menu/${deleteId}`);
+      setMenuItems(prev => prev.filter(item => item._id !== deleteId));
+      setDeleteId(null);
+    } catch (err) {
+      console.error("Delete failed", err);
+      alert("Failed to delete item. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -140,7 +158,10 @@ const MenuManagement = () => {
                   <button className="p-2.5 bg-gray-50 rounded-xl text-gray-400 hover:text-primary transition-all border border-gray-100">
                     <Edit2 size={16} />
                   </button>
-                  <button className="p-2.5 bg-gray-50 rounded-xl text-gray-400 hover:text-red-500 transition-all border border-gray-100">
+                  <button
+                    onClick={() => setDeleteId(item._id)}
+                    className="p-2.5 bg-gray-50 rounded-xl text-gray-400 hover:text-red-500 transition-all border border-gray-100"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -263,6 +284,48 @@ const MenuManagement = () => {
           </button>
         </form>
       </Modal>
+
+      {/* Professional Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteId && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-dark-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl border border-gray-100"
+            >
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-6">
+                <Trash2 size={32} />
+              </div>
+              <h3 className="text-2xl font-bold text-dark-900 mb-2">Remove Dish?</h3>
+              <p className="text-gray-500 mb-8 leading-relaxed">
+                Are you sure you want to delete <span className="font-bold text-dark-900">"{menuItems.find(i => i._id === deleteId)?.name}"</span>? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteId(null)}
+                  disabled={isDeleting}
+                  className="flex-1 py-4 rounded-2xl font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-all text-sm uppercase tracking-widest disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex-1 py-4 rounded-2xl font-bold text-white bg-red-500 hover:bg-red-600 transition-all shadow-lg shadow-red-200 text-sm uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isDeleting ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
