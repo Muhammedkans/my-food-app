@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { MapPin, Package, LogOut } from 'lucide-react';
+import { MapPin, Package, LogOut, ExternalLink } from 'lucide-react';
 import { logout } from '../../store/slices/authSlice';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 import { socket } from '../../services/socket';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +11,7 @@ const DeliveryDashboard = () => {
   const { user } = useSelector((state: any) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const [availableOrders, setAvailableOrders] = useState<any[]>([]);
   const [activeOrder, setActiveOrder] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'available' | 'active' | 'history'>('available');
@@ -72,6 +73,14 @@ const DeliveryDashboard = () => {
       socket.off('order_status_updated', handleStatusUpdate);
     };
   }, [user?._id]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'history') {
+      setActiveTab('history');
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (Notification.permission === 'default') {
@@ -243,8 +252,14 @@ const DeliveryDashboard = () => {
               exit={{ opacity: 0, y: -10 }}
             >
               {activeOrder ? (
-                <div className="bg-white p-10 rounded-[40px] shadow-lg border border-primary/20 relative overflow-hidden">
+                <div
+                  onClick={() => navigate(`/delivery/order/${activeOrder._id}`)}
+                  className="bg-white p-10 rounded-[40px] shadow-lg border border-primary/20 relative overflow-hidden cursor-pointer group hover:shadow-xl transition-all"
+                >
                   <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-blue-600" />
+                  <div className="absolute top-0 right-0 p-6 text-primary opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
+                    <ExternalLink size={24} />
+                  </div>
                   <div className="flex flex-col md:flex-row gap-10">
                     <div className="flex-1 space-y-8">
                       <div>
@@ -335,7 +350,11 @@ const DeliveryDashboard = () => {
                 ) : (
                   <div className="divide-y divide-gray-50">
                     {history.map(order => (
-                      <div key={order._id} className="p-8 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                      <div
+                        key={order._id}
+                        onClick={() => navigate(`/delivery/order/${order._id}`)}
+                        className="p-8 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer group"
+                      >
                         <div className="flex items-center gap-6">
                           <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400">
                             <Package size={24} />

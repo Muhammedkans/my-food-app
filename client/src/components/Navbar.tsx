@@ -120,7 +120,7 @@ const Navbar = () => {
                         </Link>
                       )}
                       <Link
-                        to="/dashboard?tab=orders"
+                        to={user?.auth.role === 'delivery_partner' ? '/delivery/dashboard?tab=history' : '/dashboard?tab=orders'}
                         className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
                       >
                         <ShoppingBag size={16} /> My Orders

@@ -18,6 +18,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ProtectedRoute from './components/ProtectedRoute';
 import DeliveryDashboard from './pages/delivery/DeliveryDashboard';
+import DeliveryOrderDetail from './pages/delivery/DeliveryOrderDetail';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import Footer from './components/Footer';
 import RestaurantSettings from './pages/partner/RestaurantSettings';
@@ -57,6 +58,7 @@ function App() {
         {/* Delivery Partner Routes */}
         <Route element={<ProtectedRoute allowedRoles={['delivery_partner']} />}>
           <Route path="/delivery/dashboard" element={<><Navbar /><DeliveryDashboard /><Footer /></>} />
+          <Route path="/delivery/order/:id" element={<><Navbar /><DeliveryOrderDetail /><Footer /></>} />
         </Route>
 
         {/* Admin Dashboard Routes */}
