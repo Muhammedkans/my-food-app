@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, X, Loader2 } from 'lucide-react';
-import api from '../../services/api';
+import api, { getBaseURL } from '../../services/api';
 
 interface ImageUploadProps {
   label: string;
@@ -29,10 +29,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ label, value, onChange, class
           'Content-Type': 'multipart/form-data',
         },
       });
-      // Assume server running on localhost:5001 for now, but ideally use env
-      const serverUrl = 'http://localhost:5001';
-      const fullUrl = `${serverUrl}${res.data.data}`;
-      onChange(fullUrl);
+      // Just send back what the server returns (could be Cloudinary URL or local path)
+      onChange(res.data.data);
     } catch (err) {
       console.error(err);
       setError('Failed to upload image');
@@ -41,13 +39,15 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ label, value, onChange, class
     }
   };
 
+  const previewSrc = value?.startsWith('http') ? value : `${getBaseURL()}${value}`;
+
   return (
     <div className={className}>
       <label className="block text-gray-400 mb-2 text-sm">{label}</label>
 
       {value ? (
         <div className="relative w-full h-48 rounded-xl overflow-hidden border border-gray-700 group">
-          <img src={value} alt="Uploaded" className="w-full h-full object-cover" />
+          <img src={previewSrc} alt="Uploaded" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <button
               type="button"

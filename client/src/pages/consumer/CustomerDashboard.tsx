@@ -9,7 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { logout } from '../../store/slices/authSlice';
-import api from '../../services/api';
+import api, { getFullImageUrl } from '../../services/api';
 import { socket } from '../../services/socket';
 
 const CustomerDashboard = () => {
@@ -83,7 +83,7 @@ const CustomerDashboard = () => {
             <div className="relative z-10">
               {/* Avatar code same as before */}
               <div className="w-28 h-28 rounded-full bg-gray-50 border-4 border-white shadow-md mx-auto mb-6 p-1 relative overflow-hidden">
-                <img src={user.profile?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200'} className="w-full h-full object-cover rounded-full" />
+                <img src={getFullImageUrl(user.profile?.avatar)} className="w-full h-full object-cover rounded-full" />
               </div>
               <h2 className="text-3xl font-display font-bold text-dark-900 leading-tight mb-1">{user.profile?.name}</h2>
               <p className="text-primary text-[10px] font-bold uppercase tracking-widest mb-8">Premium Member</p>

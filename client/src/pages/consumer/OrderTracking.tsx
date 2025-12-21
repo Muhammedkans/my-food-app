@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { socket } from '../../services/socket';
-import api from '../../services/api';
+import api, { getFullImageUrl } from '../../services/api';
 import type { RootState } from '../../store/store';
 
 const OrderTracking = () => {
@@ -263,7 +263,7 @@ const OrderTracking = () => {
             {order.items.map((item: any, idx: number) => (
               <div key={idx} className="flex items-center gap-4 group">
                 <div className="w-14 h-14 rounded-xl bg-dark-900 overflow-hidden shrink-0 border border-white/5">
-                  <img src={item.image || 'https://via.placeholder.com/100'} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <img src={getFullImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-white text-sm truncate">{item.name}</h4>

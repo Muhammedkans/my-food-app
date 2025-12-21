@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Edit2, Trash2, Plus, X, Search, Clock, ChevronRight, Upload, Sparkles, Wand2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api, { getBaseURL } from '../../services/api';
+import api, { getBaseURL, getFullImageUrl } from '../../services/api';
 import Modal from '../../components/Modal';
 import ImageUpload from '../../components/common/ImageUpload';
 
@@ -100,7 +100,7 @@ const MenuManagement = () => {
           <div key={item._id} className="bg-white rounded-[32px] border border-gray-100 overflow-hidden group hover:border-primary/20 transition-all flex flex-col h-full shadow-sm hover:shadow-md">
             <div className="h-56 relative overflow-hidden shrink-0">
               <img
-                src={item.image?.startsWith('http') ? item.image : `${getBaseURL()}${item.image}`}
+                src={getFullImageUrl(item.image)}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 alt={item.name}
               />

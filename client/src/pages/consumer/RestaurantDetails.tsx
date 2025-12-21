@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { addToCart } from '../../store/slices/cartSlice';
-import api, { getBaseURL } from '../../services/api';
+import api, { getBaseURL, getFullImageUrl } from '../../services/api';
 
 const RestaurantDetails = () => {
   const { id } = useParams();
@@ -77,7 +77,7 @@ const RestaurantDetails = () => {
       {/* Hero Header */}
       <div className="h-[45vh] relative overflow-hidden">
         <img
-          src={restaurant.assets?.coverImage?.startsWith('http') ? restaurant.assets?.coverImage : `${getBaseURL()}${restaurant.assets?.coverImage}`}
+          src={getFullImageUrl(restaurant.assets?.coverImage)}
           className="w-full h-full object-cover"
           alt={restaurant.name}
         />
@@ -273,7 +273,7 @@ const RestaurantDetails = () => {
                   >
                     <div className="w-full md:w-52 h-52 rounded-[32px] overflow-hidden shrink-0 relative">
                       <img
-                        src={item.image?.startsWith('http') ? item.image : `${getBaseURL()}${item.image}`}
+                        src={getFullImageUrl(item.image)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                         alt={item.name}
                       />
@@ -346,7 +346,7 @@ const RestaurantDetails = () => {
                   >
                     <div className="h-48 relative overflow-hidden">
                       <img
-                        src={similar.assets?.coverImage?.startsWith('http') ? similar.assets?.coverImage : `${getBaseURL()}${similar.assets?.coverImage}`}
+                        src={getFullImageUrl(similar.assets?.coverImage)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         alt={similar.name}
                       />
