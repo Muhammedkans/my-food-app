@@ -13,7 +13,8 @@ app.set('trust proxy', 1);
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
-  'https://my-food-app-muhammedkans.vercel.app', // Adding the user's explicit vercel url if known
+  'https://my-food-app-muhammedkans.vercel.app',
+  'https://my-food-app-omega.vercel.app', // Adding the new one causing issue
   'http://localhost:5173',
   'http://localhost:5174',
 ].filter(Boolean);
