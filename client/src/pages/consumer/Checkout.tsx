@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, CreditCard, Clock, Plus, Check } from 'lucide-react';
@@ -23,9 +23,16 @@ const Checkout = () => {
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
   const [newAddress, setNewAddress] = useState({ label: 'Home', addressLine: '', city: '' });
   const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [paymentInitiated, setPaymentInitiated] = useState(false);
 
-  if (items.length === 0) {
-    navigate('/restaurants');
+  // Only redirect if cart is empty and NOT currently processing/initiating a payment
+  useEffect(() => {
+    if (items.length === 0 && !isProcessing && !paymentInitiated) {
+      navigate('/restaurants');
+    }
+  }, [items.length, isProcessing, paymentInitiated, navigate]);
+
+  if (items.length === 0 && !isProcessing && !paymentInitiated) {
     return null;
   }
 
@@ -56,7 +63,7 @@ const Checkout = () => {
 
       if (res.data.success) {
         // Update Redux state with new user data
-        dispatch(setCredentials({ ...res.data.data, token: user.token })); // keep token
+        dispatch(setCredentials({ ...res.data.data, token: user?.token })); // keep token
         setShowAddressModal(false);
         setNewAddress({ label: 'Home', addressLine: '', city: '' });
         // Auto select the new address (last one)
@@ -88,6 +95,7 @@ const Checkout = () => {
     setIsProcessing(true);
 
     try {
+      setPaymentInitiated(true);
       // 1. Create a "Pending" order in our system
       const orderRes = await api.post('/orders', {
         restaurantId,
