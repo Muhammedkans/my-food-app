@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, X, Loader2 } from 'lucide-react';
-import api, { getBaseURL } from '../../services/api';
+import api, { getBaseURL, getFullImageUrl } from '../../services/api';
 
 interface ImageUploadProps {
   label: string;
@@ -39,7 +39,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ label, value, onChange, class
     }
   };
 
-  const previewSrc = value?.startsWith('http') ? value : `${getBaseURL()}${value}`;
+  const previewSrc = getFullImageUrl(value);
 
   return (
     <div className={className}>

@@ -17,34 +17,29 @@ export const getBaseURL = () => {
 
 export const getFullImageUrl = (path: string) => {
   if (!path || typeof path !== 'string') {
-    return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'; // Default fallback
+    return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500';
   }
 
   const sPath = path.trim();
 
-  // If it's already a full external URL (like Cloudinary), return it as is
-  if (sPath.startsWith('http') && !sPath.includes('localhost') && !sPath.includes('127.0.0.1')) {
-    return sPath;
+  // 1. If the path CONTAINS a full cloudinary/external URL anywhere (fix for the localhost prefix bug)
+  const cloudinaryMatch = sPath.match(/https?:\/\/[^/]*cloudinary\.com\/[^\s]*/);
+  if (cloudinaryMatch) return cloudinaryMatch[0];
+
+  const externalMatch = sPath.match(/https?:\/\/[\w.-]+(?:\.[\w.-]+)+[/\w .-]*\/?/);
+  if (externalMatch && !externalMatch[0].includes('localhost') && !externalMatch[0].includes('127.0.0.1')) {
+    return externalMatch[0];
   }
 
-  // Clean up legacy paths that might have local URLs hardcoded from previous bugs
+  // 2. Clear out local prefixes
   let cleanPath = sPath.replace(/^https?:\/\/localhost(:\d+)?/, '')
     .replace(/^https?:\/\/127\.0\.0\.1(:\d+)?/, '');
 
-  // Ensure it starts with / and doesn't have duplicate /api
   if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
   cleanPath = cleanPath.replace(/^\/api\//, '/');
 
   const base = getBaseURL();
-  let finalUrl = `${base}${cleanPath}`.replace(/([^:]\/)\/+/g, "$1"); // Resolve double slashes except after protocol
-
-  // Final safety: If the URL ended up containing another http protocol (nested URL bug), extract the correct one
-  if (finalUrl.includes('http', 8)) { // Search after the first 'http://'
-    const nestedMatch = finalUrl.match(/https?:\/\/[^/]+\.cloudinary\.com\/.*/);
-    if (nestedMatch) return nestedMatch[0];
-  }
-
-  return finalUrl;
+  return `${base}${cleanPath}`.replace(/([^:]\/)\/+/g, "$1");
 };
 
 // Response interceptor to handle 401s
