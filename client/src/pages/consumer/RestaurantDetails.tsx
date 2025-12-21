@@ -167,7 +167,7 @@ const RestaurantDetails = () => {
                 </div>
                 <div>
                   <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Contact</p>
-                  <p className="text-dark-900 text-sm font-bold">+91 98765 43210</p>
+                  <p className="text-dark-900 text-sm font-bold">+91 9123456789</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">

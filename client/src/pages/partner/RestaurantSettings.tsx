@@ -74,7 +74,7 @@ const RestaurantSettings = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  placeholder="+91 98765 43210"
+                  placeholder="+91 "
                   className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4 font-medium text-dark-900 focus:border-primary outline-none"
                 />
               </div>
