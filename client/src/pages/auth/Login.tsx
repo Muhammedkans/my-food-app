@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { LogIn, Mail, Lock, Loader2, AlertCircle, User as UserIcon, ArrowRight, ShoppingBag, Truck } from 'lucide-react';
+import { Mail, Lock, Loader2, AlertCircle, User as UserIcon, ArrowRight, ShoppingBag, Truck } from 'lucide-react';
 import { setCredentials } from '../../store/slices/authSlice';
 import api from '../../services/api';
 import type { RootState } from '../../store/store';
@@ -65,7 +65,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-white">
+    <div className="min-h-screen flex flex-col items-center justify-start pt-32 pb-20 px-6 relative overflow-hidden bg-white">
       {/* Dynamic Background Accents */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <motion.div
@@ -87,12 +87,16 @@ const Login = () => {
         className="max-w-md w-full relative z-10"
       >
         <div className="text-center mb-8">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className={`w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg transition-colors duration-500 ${getRoleColor()} ${getRoleGlow()}`}
-          >
-            <LogIn className="text-white" size={32} />
-          </motion.div>
+          <div className="flex justify-center mb-8">
+            <Link to="/" className="inline-flex items-center gap-3 group">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-[18px] flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform duration-300">
+                <span className="text-white font-black text-2xl">F</span>
+              </div>
+              <span className="text-3xl font-display font-bold text-dark-900 tracking-tight group-hover:text-primary transition-colors">
+                Food<span className="text-primary">Bey</span>
+              </span>
+            </Link>
+          </div>
           <h1 className="text-4xl font-display font-bold text-dark-900 mb-2 tracking-tight">Welcome Back</h1>
           <p className="text-gray-500 font-medium tracking-wide">Enter your credentials to continue</p>
         </div>

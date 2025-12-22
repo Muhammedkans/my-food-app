@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { UserPlus, Mail, Lock, User as UserIcon, Loader2, AlertCircle, ShoppingBag, Truck } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Loader2, AlertCircle, ShoppingBag, Truck, ArrowRight } from 'lucide-react';
 import { setCredentials } from '../../store/slices/authSlice';
 import api from '../../services/api';
 import { motion } from 'framer-motion';
@@ -41,7 +41,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-white">
+    <div className="min-h-screen flex flex-col items-center justify-start pt-32 pb-20 px-6 relative overflow-hidden bg-white">
       {/* Background Accents */}
       <div className="absolute top-0 right-0 w-full h-full pointer-events-none">
         <div className="absolute top-[-5%] right-[-5%] w-[45%] h-[45%] bg-secondary/5 blur-[140px] rounded-full" />
@@ -54,8 +54,15 @@ const Register = () => {
         className="max-w-xl w-full relative z-10"
       >
         <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-primary/10 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-sm">
-            <UserPlus className="text-primary" size={32} />
+          <div className="flex justify-center mb-8">
+            <Link to="/" className="inline-flex items-center gap-3 group">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-[18px] flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform duration-300">
+                <span className="text-white font-black text-2xl">F</span>
+              </div>
+              <span className="text-3xl font-display font-bold text-dark-900 tracking-tight group-hover:text-primary transition-colors">
+                Food<span className="text-primary">Bey</span>
+              </span>
+            </Link>
           </div>
           <h1 className="text-4xl font-display font-bold text-dark-900 mb-2 tracking-tight">Create an Account</h1>
           <p className="text-gray-500 font-medium">Join the FoodBey family today</p>
@@ -153,13 +160,13 @@ const Register = () => {
               type="submit"
               disabled={loading}
               className={`w-full py-5 rounded-2xl flex items-center justify-center gap-3 transition-all disabled:opacity-50 font-bold uppercase tracking-widest text-sm shadow-md active:scale-[0.98] ${formData.role === 'customer'
-                  ? 'bg-primary text-white hover:bg-primary/90'
-                  : formData.role === 'restaurant_owner'
-                    ? 'bg-secondary text-white hover:bg-secondary/90'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                ? 'bg-primary text-white hover:bg-primary/90'
+                : formData.role === 'restaurant_owner'
+                  ? 'bg-secondary text-white hover:bg-secondary/90'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
             >
-              {loading ? <Loader2 className="animate-spin" /> : <UserPlus size={20} />}
+              {loading ? <Loader2 className="animate-spin" /> : <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />}
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>

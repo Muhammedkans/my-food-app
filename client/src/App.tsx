@@ -1,4 +1,6 @@
 import { Routes, Route, Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import type { RootState } from './store/store';
 import Navbar from './components/Navbar';
 import Onboarding from './pages/partner/Onboarding';
 import RestaurantLayout from './layouts/RestaurantLayout';
@@ -24,15 +26,17 @@ import Footer from './components/Footer';
 import RestaurantSettings from './pages/partner/RestaurantSettings';
 
 function App() {
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
   return (
     <div className="min-h-screen bg-gray-50 text-dark-900 font-sans selection:bg-primary selection:text-white">
       <CartDrawer />
-      <AIChatSupport />
+      {isAuthenticated && <AIChatSupport />}
       <Routes>
         {/* Public Routes with Navbar */}
         <Route path="/" element={<><Navbar /><Home /><Footer /></>} />
-        <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
-        <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/restaurants" element={<><Navbar /><RestaurantFeed /><Footer /></>} />
         <Route path="/restaurant/:id" element={<><Navbar /><RestaurantDetails /><Footer /></>} />
 
