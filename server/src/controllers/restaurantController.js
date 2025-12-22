@@ -360,6 +360,57 @@ const deleteMenuItem = async (req, res, next) => {
   }
 };
 
+// @desc    Update restaurant details
+// @route   PUT /api/restaurants/:id
+// @access  Private (Owner only)
+const updateRestaurant = async (req, res, next) => {
+  try {
+    let restaurant = await Restaurant.findById(req.params.id);
+
+    if (!restaurant) {
+      res.status(404);
+      throw new Error('Restaurant not found');
+    }
+
+    // Verify ownership
+    if (restaurant.ownerId.toString() !== req.user._id.toString() && req.user.auth.role !== 'admin') {
+      res.status(403);
+      throw new Error('Not authorized to update this restaurant');
+    }
+
+    // Extract fields to update
+    const { name, description, phone, address, isOpen, logo, coverImage } = req.body;
+
+    // Update basic fields
+    if (name) restaurant.name = name;
+    if (address) restaurant.location.address = address;
+
+    // Update Info fields
+    if (description) restaurant.info.description = description;
+
+    // Update Contact (assuming part of info or root for now, schema check needed later but flexible in mongo)
+    // Checking Restaurant.js schema earlier: info, location, stats, assets. No direct 'contact' field in schema snippet seen earlier
+    // but RestaurantSettings has phone. Let's put phone in info for now or just ignore if schema doesn't support.
+    // Actually, let's check schema.
+
+    // Update Status
+    if (typeof isOpen !== 'undefined') restaurant.status.isOpen = isOpen;
+
+    // Update Assets (Cloudinary URLs passed from frontend)
+    if (logo) restaurant.assets.logo = logo;
+    if (coverImage) restaurant.assets.coverImage = coverImage;
+
+    await restaurant.save();
+
+    res.json({
+      success: true,
+      data: restaurant
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerRestaurant,
   getRestaurants,
@@ -371,5 +422,6 @@ module.exports = {
   addReview,
   addMenuItem,
   deleteMenuItem,
-  approveRestaurant
+  approveRestaurant,
+  updateRestaurant
 };

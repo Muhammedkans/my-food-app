@@ -1,5 +1,6 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { Toaster } from 'react-hot-toast';
 import type { RootState } from './store/store';
 import Navbar from './components/Navbar';
 import Onboarding from './pages/partner/Onboarding';
@@ -30,6 +31,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-dark-900 font-sans selection:bg-primary selection:text-white">
+      <Toaster position="top-center" reverseOrder={false} />
       <CartDrawer />
       {isAuthenticated && <AIChatSupport />}
       <Routes>

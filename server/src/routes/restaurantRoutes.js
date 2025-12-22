@@ -11,7 +11,8 @@ const {
   addReview,
   addMenuItem,
   deleteMenuItem,
-  approveRestaurant
+  approveRestaurant,
+  updateRestaurant
 } = require('../controllers/restaurantController');
 const { protect, admin } = require('../middlewares/authMiddleware');
 const { upload } = require('../config/cloudinary');
@@ -39,7 +40,8 @@ router.route('/my')
 router.post('/:id/approve', protect, admin, approveRestaurant);
 
 router.route('/:id')
-  .get(getRestaurantById);
+  .get(getRestaurantById)
+  .put(protect, updateRestaurant);
 
 router.get('/:id/similar', getSimilarRestaurants);
 
