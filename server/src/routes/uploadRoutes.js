@@ -3,11 +3,12 @@ const router = express.Router();
 const { uploadFile } = require('../controllers/uploadController');
 const { protect } = require('../middlewares/authMiddleware');
 
-// Use Cloudinary for production/remote environments, local for development
-const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER || process.env.VERCEL;
-const upload = isProduction
-  ? require('../config/cloudinary').upload
-  : require('../utils/fileUpload');
+const cloudinaryConfig = require('../config/cloudinary');
+
+// Use Cloudinary if credentials are provided in .env (Preferred)
+// Fallback to local storage only if Cloudinary is not configured
+const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY;
+const upload = useCloudinary ? cloudinaryConfig.upload : require('../utils/fileUpload');
 
 router.post('/', protect, (req, res, next) => {
   upload.single('image')(req, res, (err) => {
