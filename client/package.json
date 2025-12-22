@@ -1,7 +1,10 @@
 {
-  "name": "client",
+  "name": "foodbey-client",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Frontend for FoodBey - Premium Food Delivery Platform",
+  "author": "FoodBey Team",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",

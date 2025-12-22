@@ -1,16 +1,21 @@
 {
-  "name": "server",
+  "name": "foodbey-server",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Backend API for FoodBey - Premium Food Delivery Platform",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "nodejs",
+    "express",
+    "mongodb",
+    "food-delivery",
+    "api"
+  ],
+  "author": "FoodBey Team",
+  "license": "MIT",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cloudinary": "^1.41.3",
