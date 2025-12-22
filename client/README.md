@@ -1,73 +1,82 @@
-# React + TypeScript + Vite
+# 💻 FoodBey Frontend - Premium Client Experience
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend of FoodBey is a modern, responsive React application designed with a **Neon Luxury** aesthetic. It provides a seamless interface for customers, restaurant owners, and delivery partners.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+- **⚡ Blazing Fast Navigation:** Powered by Vite and React-Router.
+- **🎨 Framer Motion Animations:** Smooth transitions, floating cards, and interactive UI elements.
+- **🛍️ Cart System:** Persistence-ready cart logic using Redux Toolkit.
+- **💳 Razorpay Integration:** Secure, managed payment flow with instant redirection.
+- **📍 Location & Addresses:** Interactive address management with labels (Home, Work, etc.).
+- **💬 AI Chat Support:** Floating AI assistant for instant user help (available after login).
+- **🎉 Order Success:** Celebratory success page with confetti and live progress indicators.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠 Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Core:** React, TypeScript, Vite
+- **Styling:** Tailwind CSS, CSS Variables for Dynamic Themes
+- **State:** Redux Toolkit (Slices: Auth, Cart, UI)
+- **Real-time:** Socket.io-client
+- **Visuals:** Lucide React, Framer Motion, Canvas-Confetti
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🚀 Installation & Setup
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Navigate to the client directory:**
+   ```bash
+   cd client
+   ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+3. **Configure Environment Variables:**
+   Create a `.env` file in the root of the `client` folder:
+   ```env
+   VITE_API_URL=http://localhost:5001/api
+   VITE_RAZORPAY_KEY_ID=your_razorpay_key
+   ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+4. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 📦 Key Pages & Components
+
+- **Consumer:**
+  - `Home.tsx`: Hero section with premium value propositions.
+  - `RestaurantFeed.tsx`: Scrollable list of verified restaurants with AI-sorted stats.
+  - `Checkout.tsx`: Detailed billing breakdown and payment gateway integration.
+  - `OrderSuccess.tsx`: Professional post-payment tracking interface.
+
+- **Partner:**
+  - `LiveOrders.tsx`: Real-time order management for restaurant owners.
+  - `MenuManagement.tsx`: Professional CRUD for food items with Cloudinary integration.
+
+- **Delivery:**
+  - `DeliveryDashboard.tsx`: Opportunity hub for pilots.
+  - `DeliveryOrderDetail.tsx`: Route navigation and order checklist.
+
+---
+
+## 💅 Styling Philosophy
+
+FoodBey uses a custom design system defined in `tailwind.config.js` and `src/index.css`.
+- **Primary Color:** Cyan Neon (`#00f3ff`)
+- **Secondary Color:** Purple Neon (`#7000ff`)
+- **Dark Mode Solids:** Deep Charcoal (`#0a0a0d`)
+
+---
+
+Developed for **FoodBey Premium**.
