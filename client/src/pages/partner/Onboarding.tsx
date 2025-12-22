@@ -11,6 +11,7 @@ const Onboarding = () => {
     address: '',
     costForTwo: '',
     coverImage: '',
+    logo: '',
     cuisineTypes: [] as string[]
   });
 
@@ -55,11 +56,18 @@ const Onboarding = () => {
         <p className="text-gray-400 mb-8">Let's set up your restaurant profile.</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <ImageUpload
-            label="Restaurant Cover Image"
-            value={formData.coverImage}
-            onChange={(url) => setFormData({ ...formData, coverImage: url })}
-          />
+          <div className="grid grid-cols-2 gap-6">
+            <ImageUpload
+              label="Restaurant Logo (Square)"
+              value={formData.logo}
+              onChange={(url) => setFormData({ ...formData, logo: url })}
+            />
+            <ImageUpload
+              label="Cover Image (Wide)"
+              value={formData.coverImage}
+              onChange={(url) => setFormData({ ...formData, coverImage: url })}
+            />
+          </div>
 
           <div>
             <label className="block text-gray-400 mb-2 text-sm">Restaurant Name</label>
@@ -94,8 +102,8 @@ const Onboarding = () => {
                   type="button"
                   onClick={() => toggleCuisine(cuisine)}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${formData.cuisineTypes.includes(cuisine)
-                      ? 'bg-primary text-white border-primary'
-                      : 'bg-gray-800/50 text-gray-400 border-gray-700 hover:bg-gray-700'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-gray-800/50 text-gray-400 border-gray-700 hover:bg-gray-700'
                     }`}
                 >
                   {cuisine}

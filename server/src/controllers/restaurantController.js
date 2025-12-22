@@ -7,7 +7,7 @@ const User = require('../models/User');
 // @access  Private (User becomes Restaurant Owner)
 const registerRestaurant = async (req, res, next) => {
   try {
-    const { name, address, cuisineTypes, costForTwo, coverImage, description } = req.body;
+    const { name, address, cuisineTypes, costForTwo, coverImage, logo, description } = req.body;
     const restaurant = await Restaurant.create({
       name,
       ownerId: req.user._id,
@@ -21,6 +21,7 @@ const registerRestaurant = async (req, res, next) => {
       },
       assets: {
         coverImage: coverImage || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=1000',
+        logo: logo || '',
         menuImages: []
       },
       info: {
