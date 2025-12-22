@@ -15,7 +15,6 @@ const RestaurantSettings = () => {
     phone: '',
     address: '',
     isOpen: true,
-    logo: '',
     coverImage: ''
   });
 
@@ -34,7 +33,6 @@ const RestaurantSettings = () => {
         phone: data.contact?.phone || '',
         address: data.location?.address || '',
         isOpen: data.status?.isOpen ?? true,
-        logo: data.assets?.logo || '',
         coverImage: data.assets?.coverImage || ''
       });
     } catch (error) {
@@ -96,32 +94,17 @@ const RestaurantSettings = () => {
               <Store size={20} className="text-primary" /> Branding & Visuals
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="space-y-4">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block">Restaurant Logo</label>
-                <div className="h-40 w-40">
-                  <ImageUpload
-                    label=""
-                    value={formData.logo}
-                    onChange={(url) => setFormData(prev => ({ ...prev, logo: url }))}
-                    className="h-full"
-                  />
-                </div>
-                <p className="text-xs text-gray-400">Square image recommended. (e.g. 500x500px)</p>
+            <div className="space-y-4">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block">Restaurant Cover Image</label>
+              <div className="h-64 w-full">
+                <ImageUpload
+                  label=""
+                  value={formData.coverImage}
+                  onChange={(url) => setFormData(prev => ({ ...prev, coverImage: url }))}
+                  className="h-full"
+                />
               </div>
-
-              <div className="space-y-4">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block">Cover Image</label>
-                <div className="h-48 w-full">
-                  <ImageUpload
-                    label=""
-                    value={formData.coverImage}
-                    onChange={(url) => setFormData(prev => ({ ...prev, coverImage: url }))}
-                    className="h-full"
-                  />
-                </div>
-                <p className="text-xs text-gray-400">Wide high-quality header image. (e.g. 1920x600px)</p>
-              </div>
+              <p className="text-xs text-gray-400">Wide high-quality header image. (e.g. 1920x600px)</p>
             </div>
           </div>
 

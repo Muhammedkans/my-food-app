@@ -10,8 +10,8 @@ const Onboarding = () => {
     description: '',
     address: '',
     costForTwo: '',
+    costForTwo: '',
     coverImage: '',
-    logo: '',
     cuisineTypes: [] as string[]
   });
 
@@ -56,18 +56,11 @@ const Onboarding = () => {
         <p className="text-gray-400 mb-8">Let's set up your restaurant profile.</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <ImageUpload
-              label="Restaurant Logo (Square)"
-              value={formData.logo}
-              onChange={(url) => setFormData({ ...formData, logo: url })}
-            />
-            <ImageUpload
-              label="Cover Image (Wide)"
-              value={formData.coverImage}
-              onChange={(url) => setFormData({ ...formData, coverImage: url })}
-            />
-          </div>
+          <ImageUpload
+            label="Restaurant Cover Image (Wide)"
+            value={formData.coverImage}
+            onChange={(url) => setFormData({ ...formData, coverImage: url })}
+          />
 
           <div>
             <label className="block text-gray-400 mb-2 text-sm">Restaurant Name</label>

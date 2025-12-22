@@ -4,12 +4,10 @@ const uploadFile = (req, res) => {
     throw new Error('No file uploaded');
   }
 
-  // In production (Cloudinary), req.file.path is the full URL
-  // In development (Local), req.file.path is the absolute system path, so we use /uploads/filename
-  const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER || process.env.VERCEL;
-  const filePath = isProduction
-    ? req.file.path
-    : `/uploads/${req.file.filename}`;
+  // Since we are forcing Cloudinary in all environments (including development), 
+  // req.file.path will always be the Cloudinary URL.
+  // We no longer need to check for production or fallback to local paths.
+  const filePath = req.file.path || req.file.secure_url;
 
   res.status(201).json({
     success: true,
