@@ -2,7 +2,7 @@
 
 <div align="center">
 
-  ![FoodBey Banner](https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=2000)
+  ![FoodBey Banner](https://res.cloudinary.com/ddnubmuty/image/upload/v1766483081/Screenshot_496_oiiffs.png)
   
   **A production-grade, full-stack food delivery ecosystem built with the MERN Stack.**
   
