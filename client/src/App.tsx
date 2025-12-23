@@ -128,7 +128,7 @@ const Home = () => (
         <div className="relative order-first lg:order-last">
           <div className="relative z-10 rounded-[60px] overflow-hidden shadow-2xl border-[16px] border-white ring-1 ring-gray-100">
             <img
-              src="https://res.cloudinary.com/ddnubmuty/image/upload/v1766334988/frond_page_image_food_rxfpnl.avif"
+              src="https://res.cloudinary.com/ddnubmuty/image/upload/v1766482494/home_image_rrc9da.avif"
               alt="Premium Gourmet Dish"
               className="w-full h-full object-cover aspect-[4/5] hover:scale-105 transition-transform duration-700"
             />
