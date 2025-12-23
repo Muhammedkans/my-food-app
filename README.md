@@ -76,11 +76,11 @@ A glimpse of the robust RESTful API powering FoodBey:
 
 ## 📸 Screenshots
 
-*(Add your application screenshots here to showcase the UI)*
+
 
 | Customer Home | Restaurant Menu | Partner Dashboard |
 |:---:|:---:|:---:|
-| ![Home](https://placehold.co/600x400/101010/FFFFFF?text=Home+Feed) | ![Menu](https://placehold.co/600x400/101010/FFFFFF?text=Menu+Page) | ![Dashboard](https://placehold.co/600x400/101010/FFFFFF?text=Partner+Portal) |
+| ![Home](https://res.cloudinary.com/ddnubmuty/image/upload/v1766483569/Screenshot_497_u8o2z9.png) | ![Menu](https://res.cloudinary.com/ddnubmuty/image/upload/v1766483656/Screenshot_498_vlpgcl.png) | ![Dashboard](https://res.cloudinary.com/ddnubmuty/image/upload/v1766483741/Screenshot_499_ahptkz.png) |
 
 ---
 
@@ -101,7 +101,7 @@ To run this project locally:
 
 1.  **Clone the repo:**
     ```bash
-    git clone https://github.com/yourusername/foodbey.git
+    git clone https://github.com/Muhammedkans/my-food-app
     ```
 2.  **Setup Backend:**
     ```bash
